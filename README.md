@@ -16,7 +16,7 @@ An instance of Twinge should be created by dragging and dropping twinge.tscn int
 
 *TWINGE was created with the intent that you may want to use multiple connections to the API (In much the way that some integration applications like StreamerBot allow you to have a main account and a bot account connected). Due to this, it cannot be used as an Autoload singleton directly.*
 
-## Modules ##
+### Modules ###
 - Chat
 - Follows
 - Monetization
