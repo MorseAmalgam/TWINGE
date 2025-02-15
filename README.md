@@ -24,17 +24,19 @@ While TWINGE has a limited set of built-in functions, most functionality comes f
   - Allow Whisper:
   - Allow Shoutout:
   - Allow Announcements:
-- **Follows**: ***INCOMPLETE*** Uses ``moderator:read:followers`` to get follower metrics and listen to new follower events. No permission dropdowns as it only implements a single scope.
+- **Follows**: ***INCOMPLETE*** Uses ``moderator:read:followers`` to get follower metrics and listen to new follower events. No permission dropdowns as it only implements a single scope, with no Manage level.
 - **Monetization**: Creates event listeners and endpoints for all Twitch features that involve monetization (Ads, Subscribers, Bit cheers, Hype Trains)
   - Allow Ads:
   - Allow Bits:
   - Allow Subscriptions:
   - Allow Hype Trains:
+- **Moderation**: ***INCOMPLETE*** Endpoints and event listeners for moderation tools. Bans, unbans, suspicious activity notifications, etc.
 - **Polls / Predictions**:
   - Allow Polls:
   - Allow Predictions:
-- **Raids**:
+- **Raids**: Uses ``channel:manage:raids`` to start and cancel raiding other channels, and listens to the channel.raid event (This does not require a permission scope).
 - **Redeems**:
+	- Allow Redeems:
 
 #### Third Party Integrations ###
 All modules in this section do not directly communicate with Twitch, but use data (namely the broadcaster and user names/IDs) to cross-reference information.
