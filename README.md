@@ -16,15 +16,29 @@ An instance of Twinge should be created by dragging and dropping twinge.tscn int
 
 *TWINGE was created with the intent that you may want to use multiple connections to the API (In much the way that some integration applications like StreamerBot allow you to have a main account and a bot account connected). Due to this, it cannot be used as an Autoload singleton directly.*
 
+While TWINGE has a limited set of built-in functions, most functionality comes from adding modules to an instance. Modules should be added as child nodes to the TWINGE instance. Each module has a set of dropdowns to define what you want to implement from it.
+
 ### Modules ###
-- Chat
-- Follows
-- Monetization
-- Polls / Predictions
-- Raids
-- Redeems
+- **Chat**: Permission options for various chat-related features.
+  - Allow Chat: 
+  - Allow Whisper:
+  - Allow Shoutout:
+  - Allow Announcements:
+- **Follows**: ***INCOMPLETE*** Uses ``moderator:read:followers`` to get follower metrics and listen to new follower events. No permission dropdowns as it only implements a single scope.
+- **Monetization**: Creates event listeners and endpoints for all Twitch features that involve monetization (Ads, Subscribers, Bit cheers, Hype Trains)
+  - Allow Ads:
+  - Allow Bits:
+  - Allow Subscriptions:
+  - Allow Hype Trains:
+- **Polls / Predictions**:
+  - Allow Polls:
+  - Allow Predictions:
+- **Raids**:
+- **Redeems**:
 
 #### Third Party Integrations ###
+All modules in this section do not directly communicate with Twitch, but use data (namely the broadcaster and user names/IDs) to cross-reference information.
+
 - Alejo Pronouns: Automatically enrich user objects with their chosen pronouns, if they have set them at https://pronouns.alejo.io/.
 - SGarner Heat: Listens for interactions from the Heat Twitch extension to capture clicks on the stream area.
 
