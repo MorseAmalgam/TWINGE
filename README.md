@@ -6,7 +6,9 @@ I'll write more on how it's supposed to do that later.
 *NOTE: You will first need to go through the steps of [Registering your App](https://dev.twitch.tv/docs/authentication/register-app/) to get a Client ID and Client Secret.*
 
 Upon load, TWINGE should create a Project Settings section.
+
 Put the created Client ID and Client Secret into their respective fields in this section.
+
 The Encryption Key is used for local encryption of token data - It is recommended that you change this from the default.
 
 ## USAGE ##
