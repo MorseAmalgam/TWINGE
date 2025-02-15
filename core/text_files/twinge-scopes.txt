@@ -1,0 +1,195 @@
+	# IRC SUPPORT
+	# This is actually everything. Both of these are also available via the API's chat support. Basically only useful if you don't want to do OAuth. 
+	# Required to read messages sent via IRC
+	"chat:read",
+	# Required to send messages via IRC
+	"chat:edit",
+	
+	
+	# API SUPPORT
+	
+	# Chat support
+	# Required for read/write to chat. It's weird, I know.
+	"user:bot", "channel:bot",
+	# Get chat events - requires user:bot and channel:bot.
+	"user:read:chat", 
+	# Used exclusively to send messages - requires user:bot and channel:bot.
+	"user:write:chat",
+	# Used to send and received whispers - user:read:whispers exists for only reading but manage covers both.
+	"user:manage:whispers"
+	
+	# Cheer/Bits support
+	# Get bit events
+	"bits:read",
+	
+	# Announcements support
+	# Create announcements
+	"moderator:manage:announcements",
+	
+	# Shoutout support
+	# Sends a shoutout, but can also trigger recieved shoutout events?
+	"moderator:manage:shoutouts",
+	
+	# Moderation support
+	# Used to get list of moderators - can also get banned users, automod status, and trigger for add/removal of mods
+	"moderation:read",
+	# Used for handling automodded messages
+	"moderator:manage:automod",
+	# Get list of banned users, or to ban/unban users - Requires for Channel Moderate
+	"moderator:manage:banned_users",
+	# Get user's list of blocked terms - moderator:read:blocked_terms exists for only reading but manage covers both.
+	"moderator:manage:blocked_terms",
+	# Exclusively required to read deleted chat messages and for the Channel Moderate event.
+	"moderator:read:chat_messages",
+	# Delete chat messages - required for the Channel Moderate event.
+	"moderator:manage:chat_messages",
+	# Update things like emote-only, follower-only, etc. - required for Channel Moderate event.
+	"moderator:manage:chat_settings",
+	# Activates/Deactives shield mode.
+	"moderator:manage:shield_mode",
+	# Warn chat user - required for Channel Moderate 2 event.
+	"moderator:manage:warnings",
+	# Required to get the exist block list
+	"user:read:blocked_users",
+	# Required to block/unblock users.
+	"user:manage:blocked_users",
+	
+	# Poll support
+	# Used to start, end, and track polls. - channel:read:polls exists for only reading but manage covers both.
+	"channel:manage:polls"
+	
+	# Prediction support
+	# Used to start, end, and manage predictions. - channel:read:predictions exists for only reading but manage covers both.
+	"channel:manage:predictions",
+	
+	# Channel Point Redeems support
+	# Used to manage channel point redeems - channel:read:redemptions exists for only reading but manage covers both.
+	"channel:manage:redemptions",
+	
+	# Ad support
+	# Weirdly only used for snoozing the next ad, not starting one.
+	"channel:manage:ads",
+	# Used to get the ad schedule and trigger on the start of an ad break.
+	"channel:read:ads",
+	# Used solely for starting an ad break.
+	"channel:edit:commercial",
+	
+	# Raid support
+	# Used to start or cancel a raid
+	"channel:manage:raids",
+	
+	# User Metrics
+	# Subscriber support
+	# Used to get list of subscribers - can also get triggers for new subs
+	"channel:read:subscriptions",
+	# VIP Support
+	# Used to get a list of VIPs, as well as adding/removing VIPs - Can also get triggers for VIP addition/removal
+	"channel:manage:vips",
+	# Moderator support
+	# Used to get list of moderators - can also get banned users, automod status, and trigger for add/removal of mods
+	"moderation:read",
+	# Used to get people chatting.
+	"moderator:read:chatters",
+	# Follow Support
+	# Used to get list of followers - can also trigger for a new follower.
+	"moderator:read:followers", 
+	
+	# Following support
+	# Used to get the list of the streamers YOU follow. Used for getting currently live streamers you follow.
+	"user:read:follows",
+	
+	# Part of metrics - should they also be separate in case you only want the subscriber/follow stuff? Maybe this is more of a category of scopes than a single use-case.
+	
+	# Follow Support
+	# Used to get list of followers - can also trigger for a new follower.
+	"moderator:read:followers", 
+	
+	# Subscription Support
+	# Used to get list of subscribers - can also get triggers for new subs
+	"channel:read:subscriptions",
+	
+	
+	
+	# Current unimplemented scopes:
+	# Manage a channel’s broadcast configuration, including updating channel configuration and managing stream markers and stream tags. - Makes changes to the stream info, like the current game, stream title, etc. These are useful.
+	"channel:manage:broadcast"
+	# Read charity campaign details and user donations on your channel. - Useful if doing a charity event, but I don't know enough about those to do much with this at the moment. Worthwhile to learn.
+	"channel:read:charity", 
+	# View Creator Goals for a channel. - Useful for events like follower/sub/bit goals, etc. Should probably be implemented alongside those hooks in case a specific kind of goal is reached?
+	"channel:read:goals",
+	# Read Guest Star details for your channel. - Actually has unique API points from the manage scope - Get the session, invites, etc. Would probably be required in tandem with manage.
+	"channel:read:guest_star",
+	# Manage Guest Star for your channel. - To add people to guest star stuff. Similar to charity events, I just don't know enough about them at the moment to do anything with it.
+	"channel:manage:guest_star",
+	# Read Guest Star details for channels where you are a Guest Star moderator. - See above about Guest Star stuff
+	"moderator:read:guest_star",
+	# Manage Guest Star for channels where you are a Guest Star moderator. - These seem to be for moderation of other channels?
+	"moderator:manage:guest_star",
+	# Suspicious user messages. Would need more info on what that means but is probably a useful moderation tool.
+	"moderator:read:suspicious_users",
+	
+	
+	# Currently unused scopes:
+	# View analytics data for the Twitch Extensions owned by the authenticated account - Not sure what this could be useful for, currently. Would definitely be helpful if developing a custom extension, though.
+	"analytics:read:extensions",
+	# View analytics data for the games owned by the authenticated account. - Literally no explanation for what this is. I think it's games owned in your Prime account?
+	"analytics:read:games",
+	# View a list of users with the editor role for a channel. - Literally what are editors
+	"channel:read:editors"
+	# Manage a channel’s Extension configuration, including activating Extensions. - As with the extension analytics, could be useful if your project has a custom extension but otherwise unclear.
+	"channel:manage:extensions"
+	# View Hype Train information for a channel. - Probably worthwhile to implement. Fairly small amount of events/triggers.
+	"channel:read:hype_train",
+	# View a channel’s polls. - Useful for only getting polls, but the manage scope covers creation which seems too important to make this worthwhile.
+	"channel:read:polls",
+	# View a channel’s Channel Points Predictions. - Useful for only getting predictions, but the manage scope also covers creation which seems vital to the use of this module.
+	"channel:read:predictions", 
+	# View Channel Points custom rewards and their redemptions on a channel. - Useful for only getting predictions, but the manage scope also covers creation which is nearly mandatory for this module.
+	"channel:read:redemptions",
+	# Read the list of VIPs in your channel. - Useful for only reading the VIPs, but the manage scope also allows addition/removal which I've seen used in some redeems.
+	"channel:read:vips",
+	# Manage Clips for a channel. - Should probably be implemented? I don't know how often people use automatic clip tools.
+	"clips:edit",
+	# View a broadcaster’s AutoMod settings. - Maybe useful? It's hard to think of a use case.
+	"moderator:read:automod_settings",
+	# Manage a broadcaster’s AutoMod settings. - Similar, only seems like it could be abused. Due to its implementation on Twitch side, also REQUIRES read to not overwrite settings.
+	"moderator:manage:automod_settings",
+	# View a broadcaster’s list of blocked terms. - Useful for only getting blocked terms, but the manage scope also covers addition/changing of terms.
+	"moderator:read:blocked_terms",
+	# View a broadcaster’s Shield Mode status. - Useful for only getting current mode, but manage scope also covers updating the mode.
+	"moderator:read:shield_mode",
+	# View a broadcaster’s shoutouts. - USeful for getting when a shoutout is made, but manage allows the creation of making a shoutout which feels mandatory.
+	"moderator:read:shoutouts",
+	# Read warnings in channels where you have the moderator role. - Useful for if another mod is sending a warning, but you can get that with the manage scope and send warnings.
+	"moderator:read:warnings",
+	# View a user’s broadcasting configuration, including Extension configurations. - More weird extension scopes.
+	"user:read:broadcast"
+	# Update the color used for the user’s name in chat. - Seems easy to implement in theory, but I can't think of a case where it would be particularly useful.
+	"user:manage:chat_color",
+	# View emotes available to a user - Hard to come up with a use case for this. Maybe for a bot account so it doesn't try to use emotes it doesn't have access to?
+	"user:read:emotes",
+	# Receive whispers sent to your user. - USeful for only recieving whispers, but you can get that with the manage scope.
+	"user:read:whispers",
+	
+	
+	# Will not implement:
+	# Add or remove the moderator role from users in your channel. - While maybe useful, I'm very wary of adding anything this powerful without a clear use case.
+	"channel:manage:moderators",
+	# Manage a channel’s stream schedule. - I don't really see a use-case for this, but I'm open to suggestions.
+	"channel:manage:schedule",
+	# View an authorized user’s stream key. - Absolutely not. I cannot *fathom* a use case scenario where this is necessary.
+	"channel:read:stream_key",
+	# Manage a channel’s videos, including deleting videos. - Literally only deletes videos. Same as above, I can't see how this could be used for good.
+	"channel:manage:videos",
+	# View a broadcaster’s unban requests. - Twitch's interface actually offers so much context that you can't get from the API that it feels like a disservice to implement unban requests from the API.
+	"moderator:read:unban_requests",
+	# Manage a broadcaster’s unban requests. - Twitch's interface actually offers so much context that you can't get from the API that it feels like a disservice to implement unban requests from the API.
+	"moderator:manage:unban_requests",
+	# Manage a user object. - Weirdly limited functionality that only updates the user's stream description. I can't really see a good use case for this over changing the stream title.
+	"user:edit",
+	# View and edit a user’s broadcasting configuration, including Extension configurations. - I can't tell the difference between this and channel:manage:extensions.
+	"user:edit:broadcast", 
+	# View a user’s email address. - This can only be used to get and set your own account's email. I can't see a use case for this.
+	"user:read:email",
+	# Read the list of channels you have moderator privileges in. - Feels questionable whether it could be used, and more likely to be used maliciously.
+	"user:read:moderated_channels"
