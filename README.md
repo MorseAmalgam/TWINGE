@@ -1,6 +1,6 @@
 TWINGE (TWitch INtegration for Godot Engine) aims to simplify getting chat, redeems, and other streaming input into a Godot project by offering a class that streamlines the process of setting up OAuth and permission scopes.
 
-I'll write more on how it's supposed to do that later.
+I'll write more on how it's supposed to do that later. Documentation primarily exists at https://github.com/MorseAmalgam/TWINGE/wiki.
 
 ## SETUP ##
 *NOTE: You will first need to go through the steps of [Registering Your App](https://dev.twitch.tv/docs/authentication/register-app/) to get a Client ID and Client Secret.*
@@ -19,24 +19,14 @@ An instance of Twinge should be created by dragging and dropping twinge.tscn int
 While TWINGE has a limited set of built-in functions, most functionality comes from adding modules to an instance. Modules should be added as child nodes to the TWINGE instance. Each module has a set of dropdowns to define what you want to implement from it.
 
 ### Modules ###
+Check [the wiki](https://github.com/MorseAmalgam/TWINGE/wiki/Core-Modules) for a full explanation of each module's settings and what endpoints/events it implements.
 - **Chat**: Permission options for various chat-related features.
-  - Allow Chat: 
-  - Allow Whisper:
-  - Allow Shoutout:
-  - Allow Announcements:
-- **Follows**: ***INCOMPLETE*** Uses ``moderator:read:followers`` to get follower metrics and listen to new follower events. No permission dropdowns as it only implements a single scope, with no Manage level.
+- **Follows**: Uses ``moderator:read:followers`` to get follower metrics and listen to new follower events. No permission dropdowns as it only implements a single scope, with no Manage level.
+- **Moderation**: Endpoints and event listeners for moderation tools. Bans, unbans, suspicious activity notifications, etc.
 - **Monetization**: Creates event listeners and endpoints for all Twitch features that involve monetization (Ads, Subscribers, Bit cheers, Hype Trains)
-  - Allow Ads:
-  - Allow Bits:
-  - Allow Subscriptions:
-  - Allow Hype Trains:
-- **Moderation**: ***INCOMPLETE*** Endpoints and event listeners for moderation tools. Bans, unbans, suspicious activity notifications, etc.
 - **Polls / Predictions**:
-  - Allow Polls:
-  - Allow Predictions:
 - **Raids**: Uses ``channel:manage:raids`` to start and cancel raiding other channels, and listens to the channel.raid event (This does not require a permission scope).
 - **Redeems**:
-	- Allow Redeems:
 
 #### Third Party Integrations ###
 All modules in this section do not directly communicate with Twitch, but use data (namely the broadcaster and user names/IDs) to cross-reference information.
