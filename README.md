@@ -1,6 +1,8 @@
 TWINGE (TWitch INtegration for Godot Engine) aims to simplify getting chat, redeems, and other streaming input into a Godot project by offering a class that streamlines the process of setting up OAuth and permission scopes.
 
-I'll write more on how it's supposed to do that later. Documentation primarily exists at https://github.com/MorseAmalgam/TWINGE/wiki.
+This project started off as a fork of Erodozer's https://github.com/erodozer/tmi.gd and the bones of tmi.gd still reside in some of the core classes. Much of TWINGE would not be as complete as it is currently without Erodozer's work, both on tmi and from input and thoughts provided personally.
+
+Documentation primarily exists at https://github.com/MorseAmalgam/TWINGE/wiki.
 
 ## SETUP ##
 *NOTE: You will first need to go through the steps of [Registering Your App](https://dev.twitch.tv/docs/authentication/register-app/) to get a Client ID and Client Secret.*
@@ -20,23 +22,27 @@ While TWINGE has a limited set of built-in functions, most functionality comes f
 
 ### Modules ###
 Check [the wiki](https://github.com/MorseAmalgam/TWINGE/wiki/Core-Modules) for a full explanation of each module's settings and what endpoints/events it implements.
-- **Chat**: Permission options for various chat-related features.
-- **Follows**: Uses ``moderator:read:followers`` to get follower metrics and listen to new follower events. No permission dropdowns as it only implements a single scope, with no Manage level.
-- **Moderation**: Endpoints and event listeners for moderation tools. Bans, unbans, suspicious activity notifications, etc.
-- **Monetization**: Creates event listeners and endpoints for all Twitch features that involve monetization (Ads, Subscribers, Bit cheers, Hype Trains)
-- **Polls / Predictions**:
-- **Raids**: Uses ``channel:manage:raids`` to start and cancel raiding other channels, and listens to the channel.raid event (This does not require a permission scope).
-- **Redeems**:
+- **Chat**: Chat, Whispers, Shoutouts and Announcements.
+- **Follows**: Follower events.
+- **Moderation**: Bans, unbans, suspicious activity notifications, etc.
+- **Monetization**: All Twitch features that involve monetization (Ads, Subscribers, Bit cheers, Hype Trains)
+- **Polls / Predictions**: Polls and Predictions.
+- **Raids**: Raid in events and raid out commands.
+- **Redeems**: Manages redeems and monitors redemptions.
+- **Stream Info**: Details about the stream (I.E. Current title and game) and the streamer account (I.E. Who they are following)
 
 #### Third Party Integrations ###
 All modules in this section do not directly communicate with Twitch, but use data (namely the broadcaster and user names/IDs) to cross-reference information.
 
 - Alejo Pronouns: Automatically enrich user objects with their chosen pronouns, if they have set them at https://pronouns.alejo.io/.
 - SGarner Heat: Listens for interactions from the Heat Twitch extension to capture clicks on the stream area.
+- Better Twitch TV?
+- 7TV?
+- FrankerFaceZ?
 
 ## Known Issues ##
-Not all modules and endpoints are currently fully implemented. 
+Not all modules and endpoints are currently fully implemented.
 
-There exists a short list of endpoints that I have no plans to implement solely because I don't see a 'safe' use case for them.
+The current system doesn't have good support for handling emoji in messages. tmi.gd implements imagemagick to handle emoji *and* animated emoji, both of which sound useful to have.
 
-But I lost them :)
+There exists a short list of scopes/endpoints that I have no plans to implement solely because I don't see a 'safe' use case for them, but the list has been lost in computer shuffles over the development of the plugin up to this point.
