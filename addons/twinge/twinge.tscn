@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://addons/twinge/core/scripts/twinge_oauth.gd" id="2_ytggn"]
 [ext_resource type="Script" path="res://addons/twinge/core/scripts/twinge_api.gd" id="3_6ia3f"]
 [ext_resource type="Script" path="res://addons/twinge/core/scripts/twinge_eventsub.gd" id="4_ccmm6"]
-[ext_resource type="Script" path="res://addons/twinge/core/scripts/twinge_stream_details.gd" id="5_gda1l"]
+[ext_resource type="Script" path="res://addons/twinge/core/scripts/twinge_user_details.gd" id="5_keud2"]
 
 [node name="TWINGE" type="Node"]
 script = ExtResource("1_58clm")
@@ -19,5 +19,5 @@ script = ExtResource("4_ccmm6")
 [node name="API" type="Node" parent="."]
 script = ExtResource("3_6ia3f")
 
-[node name="StreamDetails" type="Node" parent="."]
-script = ExtResource("5_gda1l")
+[node name="UserDetails" type="Node" parent="."]
+script = ExtResource("5_keud2")
