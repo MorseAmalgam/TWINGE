@@ -25,6 +25,7 @@ var credentials:
 
 @export var credential_filename:String
 @export var broadcaster_id:String
+@export var primary_instance:TwingeCore
 
 @onready var oauth:TwingeOAuth = $OAuth
 @onready var eventsub:TwingeEventSub = $EventSub
@@ -132,6 +133,10 @@ func update_stream_status():
 	pass
 
 func get_user(user_id:String, enrich:bool=false)->TwingeUser:
+	# Secondary instances should not perform their own queries and instead rely on the primary.
+	if (primary_instance != null):
+		return await primary_instance.get_user(user_id, enrich)
+	
 	var user = TwingeUser.new()
 	if user_cache.has(user_id):
 		user = user_cache[user_id]
