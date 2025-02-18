@@ -1,5 +1,5 @@
 extends TwingeModule
-class_name StreamDetailsModule
+class_name UserDetailsModule
 
 
 var following: Array
