@@ -1,4 +1,5 @@
 extends TwingeModule
+class_name TwingePollPredictionModule
 ## (AFFILIATE+) Implements polls and predictions.
 
 @export_category("Twitch Capabilities")

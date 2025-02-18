@@ -1,4 +1,5 @@
 extends TwingeModule
+class_name TwingeChatModule
 ## Implements chat-related functionalities.
 
 @export_category("Twitch Capabilities")

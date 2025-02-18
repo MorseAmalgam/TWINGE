@@ -1,4 +1,5 @@
 extends TwingeModule
+class_name TwingeMonetizationModule
 ## (AFFILIATE+) Implements events and endpoints related to features that generate streamer revenue. This includes ads, bits/cheers, subscription events, and hype trains.
 
 @export_category("Twitch Capabilities")
@@ -7,8 +8,9 @@ extends TwingeModule
 @export_enum("None", "Read") var allow_subscriptions = 0
 @export_enum("None", "Read") var allow_hype_trains = 0
 
-var subscribers:Array = []
 
+var subscribers: Dictionary
+var latest_subscriber: TwingeUser
 
 func get_scopes() -> Array[String]:
 	var scopes:Array[String] = [
@@ -99,6 +101,7 @@ func get_event_subscriptions() -> Array:
 
 
 func _ready():
+	super()
 	service_identifier = "Module-Monetization"
 	if (allow_ads == 2):
 		twinge.register_endpoint("start_ad_break", self, "_run_ads")
@@ -150,7 +153,6 @@ func _run_ads(length:int = 60):
 	if (!twinge.stream_status.live):
 		debug_message("Stream is not live, skipping.")
 		return
-		pass
 	
 	var res = await twinge.api.query(
 		self,
@@ -231,3 +233,10 @@ func _update_subscribers(after:String=""):
 
 func _get_hype_train_events():
 	pass
+
+func enrich_user(user: TwingeUser) -> TwingeUser:
+	user.extra["subscription_tier"] = -1
+	if subscribers.has(user.id):
+		user.extra["subscription_tier"] = subscribers[user.id].tier
+	
+	return user

@@ -1,4 +1,5 @@
 extends TwingeModule
+class_name TwingeRedeemsModule
 ## (AFFILIATE+) Implements channel point redeem features.
 
 @export_enum("None", "Read", "Read & Manage") var allow_redeems = 0

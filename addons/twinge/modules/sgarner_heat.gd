@@ -1,4 +1,5 @@
 extends TwingeModule
+class_name TwingeHeatModule
 ## Enables functionality from the Heat Twitch extension.
 # Scott Garner's Heatmap extension
 # This must also be enabled on your channel via https://dashboard.twitch.tv/extensions/cr20njfkgll4okyrhag7xxph270sqk-2.1.1

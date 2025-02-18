@@ -1,4 +1,5 @@
 extends TwingeModule
+class_name TwingeRaidModule
 ## Implements features related to raids.
 
 func get_scopes() -> Array[String]:
