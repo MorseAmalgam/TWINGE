@@ -71,11 +71,12 @@ func initialize(prompt_login:bool = false):
 	required_scopes = twinge.scopes
 	
 	if (ProjectSettings.get_setting("TWINGE/oauth/client_ID") == null or
-		ProjectSettings.get_setting("TWINGE/oAuth/client_secret") == null):
+		ProjectSettings.get_setting("TWINGE/oauth/client_secret") == null):
 			debug_message("The client ID and/or client secret are currently not set.\nYou must follow the instructions at https://dev.twitch.tv/docs/authentication/register-app/ and fill in these fields before you can make an authorization request.")
 			return
 		
 	credentials = TwingeCredentials.load_from_file(credential_filename, ProjectSettings.get_setting("TWINGE/encryption/key"))
+	#credentials = TwingeCredentials.load_from_json(credential_filename) #, ProjectSettings.get_setting("TWINGE/encryption/key"))
 	if (credentials != null):
 		if credentials.token:
 			# Validate Token for freshness & proper scopes
