@@ -208,5 +208,5 @@ func handle_websocket_message(command: Dictionary):
 				heartbeat_watchdog.start(heartbeat_watchdog.wait_time)
 			
 			#TODO: compare payload subscription event ID to most recent messages to prevent double-event triggers
-			
+			debug_message("Got a notification")
 			event_received.emit(command.metadata.subscription_type, command.payload.event)
