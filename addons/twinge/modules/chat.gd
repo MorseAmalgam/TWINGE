@@ -3,12 +3,15 @@ class_name TwingeChatModule
 ## Implements chat-related functionalities.
 
 @export_category("Twitch Capabilities")
+## Allows the fetching of a list of users currently in chat.
+@export_enum("None", "Read") var allow_chatters = 0
 @export_enum("None", "Read", "Read & Manage") var allow_chat = 0
 @export_enum("None", "Read", "Read & Manage") var allow_whisper = 0
 @export_enum("None", "Read", "Read & Manage") var allow_shoutout = 0
 @export_enum("None", "Read & Manage") var allow_announcements = 0
 
-var chat_tracker:Array
+var first_chat_tracker:Array
+var chatters:Array
 
 signal chat_message(details)
 signal chat_first_time_message(details)
@@ -25,6 +28,8 @@ func get_scopes() -> Array[String]:
 		"user:bot", "channel:bot"
 	]
 	# Get chat events - requires user:bot and channel:bot.
+	if (allow_chatters == 1):
+		scopes.append("moderator:read:chatters")
 	if (0 < allow_chat):
 		scopes.append("user:read:chat")
 	if (allow_chat == 2):
@@ -99,12 +104,15 @@ func get_event_subscriptions() -> Array:
 
 func _ready():
 	service_identifier = "ChatModule"
+	
 	if 0 < allow_chat:
 		twinge.register_hook("channel_chat_message", chat_message)
 		signals["channel_chat_message"] = chat_message
 		twinge.register_hook("chat_first_time_message", chat_first_time_message)
 		twinge.register_hook("chat_first_session_message", chat_first_session_message)
-		
+	
+	if (allow_chatters == 1):
+		twinge.register_endpoint("get_chatters", self, "_get_chatters")
 	if allow_chat == 2:
 		twinge.register_endpoint("send_message", self, "_send_message")
 	if allow_whisper == 2:
@@ -115,6 +123,17 @@ func _ready():
 		twinge.register_endpoint("send_announcement", self, "_send_announcement")
 
 
+func _on_twinge_connected():
+	update_metrics_info()
+	# Updating every five minutes to ensure nothing has changed - Probably overkill but w/e
+	_create_heartbeat(update_metrics_info, 60 * 5)
+	pass
+
+func update_metrics_info():
+	# Reset the list
+	chatters = []
+	await _update_chatters()
+
 func _handle_channel_chat_message(details):
 	var message = {
 			"id":details.message_id,
@@ -122,29 +141,58 @@ func _handle_channel_chat_message(details):
 		}
 	
 	var user = await twinge.get_user(details.chatter_user_id, true)
-	
+	debug_message("Got user info")
 	# First session chat for this user
-	if (!chat_tracker.has(details.chatter_user_id)):
+	if (!first_chat_tracker.has(details.chatter_user_id)):
 		#TODO: Check to see if they're a first time chatter
 		
 		chat_first_session_message.emit({"user":user})
-		chat_tracker.append(details.chatter_user_id)
+		first_chat_tracker.append(details.chatter_user_id)
 		pass
 	
 	
 	for trigger in get_children():
 		if not (trigger is TwingeTriggerTemplate):
+			debug_message(trigger.name + " is not a trigger template")
 			continue
 		if !trigger.active:
+			debug_message(trigger.name + " is not active")
+			continue
+		message["alias_matches"] = trigger.matches_alias(message.text)
+		if (message["alias_matches"] == 0):
+			debug_message(trigger.name + " failed alias check")
 			continue
 		if (!trigger.has_permission(user)):
+			debug_message(trigger.name + " failed user permissions")
 			continue
-		if (!trigger.matches_alias(message.text)):
-			continue
+		
 
 		trigger.call("run", user, message)
 	pass
 
+
+func _get_chatters():
+	return chatters
+
+func _update_chatters(after:String = ""):
+	var result = await twinge.api.query(
+		self,
+		"chat/chatters", 
+		{ 
+			"broadcaster_id": twinge.credentials.broadcaster_user_id,
+			"moderator_id": twinge.credentials.user_id,
+			"first": 100, 
+			"after" : after 
+		})
+	if result != null:
+		if len(result.data.data) > 0:
+			for chatter in result.data.data:
+				if (!chatters.has(chatter.user_id)):
+					chatters.append(chatter.user_id)
+			
+			# More than 100 mods??
+			if result.data.pagination.has("cursor"):
+				await _update_chatters(result.data.pagination.cursor)
 
 func _send_message(message:String, in_reply_to:String=""):
 	var res = await twinge.api.query(
@@ -193,9 +241,9 @@ func _send_whisper(to_user:String, message:String):
 func _send_shoutout(streamer:String):
 	debug_message("Send Shoutout called")
 	# Only works if the user is live - Do not continue if stream is offline.
-	#if (!twinge.stream_status.live):
-		#debug_message("Stream is not live, skipping shoutout")
-		#return
+	if (!twinge.stream_status.live):
+		debug_message("Stream is not live, skipping shoutout")
+		return
 	
 	# Broadcaster username was passed in instead of ID, find their ID
 	if (!streamer.is_valid_int()):
