@@ -65,7 +65,7 @@ func _ready():
 func _on_twinge_connected():
 	# Get rewards
 	await _update_custom_reward_list()
-	return
+
 	# Only attempt to create redeems if we have permission
 	if (allow_redeems < 2):
 		return
@@ -75,15 +75,16 @@ func _on_twinge_connected():
 			continue
 		redeem = redeem as TwingePointRedeemTemplate
 		# Redeem exists, just pass the ID back
-		if redeems.has(redeem.redeem_details.title):
-			debug_message("Redeem %s is already registered, capturing ID and updating on Twitch." % redeem.redeem_details.title)
-			redeem.redeem_details.twitch_redeem_id = redeems[redeem.redeem_details.title]
-			_update_redeem(redeem.redeem_details)
+		if redeems.has(redeem.title):
+			debug_message("Redeem %s is already registered, capturing ID and updating on Twitch." % redeem.title)
+			redeem.twitch_redeem_id = redeems[redeem.title]
+			await _update_redeem(redeem)
 			continue
-		
-		# New redeem, register with Twitch
-		debug_message("Creating redeem for %s" % redeem.redeem_details.title)
-		redeem.redeem_details.twitch_redeem_id = await _create_redeem(redeem.redeem_details)
+		else:
+			# New redeem, register with Twitch
+			debug_message("Creating redeem for %s" % redeem.title)
+			var response = await _create_redeem(redeem)
+			redeem.twitch_redeem_id = response.id
 	pass
 
 func _get_custom_rewards():
@@ -110,7 +111,7 @@ func _get_custom_reward_redemption():
 	pass
 
 
-func _create_redeem(redeem:TwingePointRedeem):
+func _create_redeem(redeem:TwingePointRedeemTemplate):
 	var redeem_data = {
 		"title":redeem.title,
 		"cost":redeem.cost
@@ -125,15 +126,15 @@ func _create_redeem(redeem:TwingePointRedeem):
 	if (redeem.is_user_input_required):
 		redeem_data.is_user_input_required = true
 	
-	if (redeem.is_max_per_stream_enabled):
+	if (0 < redeem.max_per_stream):
 		redeem_data.is_max_per_stream_enabled = true
 		redeem_data.max_per_stream = redeem.max_per_stream
 	
-	if (redeem.is_max_per_user_per_stream_enabled):
+	if (0 < redeem.max_per_user_per_stream):
 		redeem_data.is_max_per_user_per_stream_enabled = true
 		redeem_data.max_per_user_per_stream = redeem.max_per_user_per_stream
 	
-	if (redeem.is_global_cooldown_enabled):
+	if (0 < redeem.global_cooldown_seconds):
 		redeem_data.is_global_cooldown_enabled = true
 		redeem_data.global_cooldown_seconds = redeem.global_cooldown_seconds
 	
@@ -154,55 +155,48 @@ func _create_redeem(redeem:TwingePointRedeem):
 	)
 	
 	if response.code == 200:
-		return response.data
+		return response.data.data[0]
 		
 	if (response.code == 400 and response.data.contains("CREATE_CUSTOM_REWARD_DUPLICATE_REWARD")):
 		pass
 	pass
 
-func _update_redeem(redeem:TwingePointRedeem):
+func _update_redeem(redeem:TwingePointRedeemTemplate):
 	var redeem_data = {
 		"title":redeem.title,
 		"cost":redeem.cost
 	}
 	
-	if (redeem.is_enabled):
-		redeem_data.is_enabled = true
+	redeem_data.is_enabled = redeem.is_enabled
 	
-	if (redeem.background_color != null):
-		redeem_data.background_color = "#%s" % redeem.background_color.to_html(false)
+	redeem_data.background_color = "#%s" % redeem.background_color.to_html(false)
 	
-	if (redeem.is_user_input_required):
-		redeem_data.is_user_input_required = true
+	redeem_data.is_user_input_required = redeem.is_user_input_required
+
+	redeem_data.is_max_per_stream_enabled = 0 < redeem.max_per_stream
+	redeem_data.max_per_stream = redeem.max_per_stream
 	
-	if (redeem.is_max_per_stream_enabled):
-		redeem_data.is_max_per_stream_enabled = true
-		redeem_data.max_per_stream = redeem.max_per_stream
+	redeem_data.is_max_per_user_per_stream_enabled = 0 < redeem.max_per_user_per_stream
+	redeem_data.max_per_user_per_stream = redeem.max_per_user_per_stream
+
+	redeem_data.is_global_cooldown_enabled = 0 < redeem.global_cooldown_seconds
+	redeem_data.global_cooldown_seconds = redeem.global_cooldown_seconds
 	
-	if (redeem.is_max_per_user_per_stream_enabled):
-		redeem_data.is_max_per_user_per_stream_enabled = true
-		redeem_data.max_per_user_per_stream = redeem.max_per_user_per_stream
+	redeem_data.prompt = redeem.description
 	
-	if (redeem.is_global_cooldown_enabled):
-		redeem_data.is_global_cooldown_enabled = true
-		redeem_data.global_cooldown_seconds = redeem.global_cooldown_seconds
-	
-	if (!redeem.description.is_empty()):
-		redeem_data.prompt = redeem.description
-	
-	if (redeem.auto_complete_redemption):
-		redeem_data.should_redemptions_skip_queue = true
+	redeem_data.should_redemptions_skip_queue = redeem.auto_complete_redemption
 	
 	var response = await twinge.api.query(
 		self,
 		"channel_points/custom_rewards",
 		{
 			"broadcaster_id" : twinge.credentials.broadcaster_user_id,
-			"id":redeem.id
+			"id":redeem.twitch_redeem_id
 		},
 		redeem_data,
 		HTTPClient.METHOD_PATCH
 	)
+	response = response
 	pass
 
 func _delete_redeem(redeem:TwingePointRedeem):
@@ -224,7 +218,7 @@ func _handle_channel_channel_points_custom_reward_redemption_add(details):
 		if not (redeem is TwingePointRedeemTemplate):
 			continue
 		redeem = redeem as TwingePointRedeemTemplate
-		if (redeem.redeem_details.twitch_redeem_id != details.reward.id):
+		if (redeem.twitch_redeem_id != details.reward.id):
 			continue
 
 		_update_redemption_status(details.reward.id, details.id, await redeem.call("run", user, details))
@@ -233,7 +227,7 @@ func _handle_channel_channel_points_custom_reward_redemption_add(details):
 func _update_redemption_status(redeem_id, redemption_id, fulfilled:bool = true):
 	var response = await twinge.api.query(
 		self,
-		"/channel_points/custom_rewards/redemptions",
+		"channel_points/custom_rewards/redemptions",
 		{
 			"broadcaster_id" : twinge.credentials.broadcaster_user_id,
 			"reward_id" : redeem_id,
