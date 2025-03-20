@@ -2,10 +2,6 @@ extends TwingeModule
 class_name UserDetailsModule
 
 
-var following: Array
-var following_live_ids: Array
-var following_live: Dictionary
-
 var followers: Array
 var latest_follower: TwingeUser
 
@@ -44,7 +40,6 @@ func _ready():
 	twinge.register_endpoint("get_mods", self, "get_mods")
 	twinge.register_endpoint("get_subscribers", self, "get_subscribers")
 	twinge.register_endpoint("get_latest_subscriber", self, "get_latest_subscriber")
-	twinge.register_endpoint("get_following_live", self, "get_following_live")
 	pass
 
 func _on_twinge_connected():
@@ -69,13 +64,6 @@ func update_metrics_info():
 	
 	mods = []
 	await update_mods()
-	
-	following = []
-	await update_following()
-	
-	following_live_ids = []
-	following_live = {}
-	await update_following_live()
 
 
 func get_followers()->Array:
@@ -89,7 +77,7 @@ func update_followers(after:String = ""):
 		self,
 		"channels/followers",
 		{
-			"broadcaster_id": twinge.credentials.user_id, 
+			"broadcaster_id": twinge.credentials.broadcaster_user_id, 
 			"first": 100, 
 			"after" : after 
 		}
@@ -189,58 +177,6 @@ func update_mods(after:String = ""):
 			# More than 100 mods??
 			if result.data.pagination.has("cursor"):
 				await update_mods(result.data.pagination.cursor)
-
-
-func update_following(after:String=""):
-	var result = await twinge.api.query(
-		self,
-		"channels/followed", 
-		{
-			"user_id": twinge.credentials.user_id,
-			"first": 100, 
-			"after" : after 
-		})
-	if result != null:
-		if len(result.data.data) > 0:
-			for user in result.data.data:
-				if (!following.has(user.broadcaster_id)):
-					following.append(user.broadcaster_id)
-			
-			# Following more than 100 users
-			if result.data.pagination.has("cursor"):
-				await update_following(result.data.pagination.cursor)
-	pass
-
-func get_following_live():
-	return following_live_ids
-
-func update_following_live(index:int = 0):
-	var count_per_request = 75
-	# Twitch does a weird thing and allows you to include the same parameter over and over. 
-	# This messes with all logical implementations of how to handle inputting a list of user ids.
-	# It also completely conflicts with how tmi.gd handles requests, making all of this VERY problematic.
-	var user_ids = "&user_id=".join(following.slice(index, index + count_per_request))
-	var result = await twinge.api.query(
-		self,
-		"streams?first=%s&type=live&user_id=%s" % [count_per_request, user_ids]
-		)
-	if result != null:
-		if len(result.data.data) > 0:
-			for user in result.data.data:
-				if (!following_live.has(user.user_id)):
-					following_live_ids.append(user.user_id)
-					
-					var stream_info = StreamerInfo.new()
-					stream_info.username = user.user_name
-					stream_info.game_name = user.game_name
-					stream_info.start_time = user.started_at
-					stream_info.thumbnail_url = user.thumbnail_url
-					following_live[user.user_id] = stream_info
-			
-		# Not reliant on the number of responses - If we get a response, continue to the next chunk of our list
-		if index + count_per_request < following.size():
-			await update_following_live(index + count_per_request)
-	pass
 
 
 func enrich_user(user: TwingeUser) -> TwingeUser:
