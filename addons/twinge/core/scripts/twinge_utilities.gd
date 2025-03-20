@@ -117,10 +117,7 @@ static func load_image(filepath: String) -> Texture2D:
 	var extension = filepath.get_extension()
 	match extension:
 		"png":
-			var image = Image.new()
-			var error = image.load(filepath)
-			if error != OK:
-				return null
+			var image = Image.load_from_file(filepath)
 			tex = ImageTexture.create_from_image(image)
 			tex.take_over_path(filepath)
 			return tex
