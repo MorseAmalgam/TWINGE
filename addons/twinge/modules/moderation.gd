@@ -23,14 +23,14 @@ func _on_twinge_connected():
 func update_metrics_info():
 	# Reset the list
 	mods = []
-	await update_mods()
+	await _update_mods()
 	
-func update_mods(after:String = ""):
+func _update_mods(after:String = ""):
 	var result = await twinge.api.query(
 		self,
 		"moderation/moderators", 
 		{ 
-			"broadcaster_id": twinge.credentials.user_id, 
+			"broadcaster_id": twinge.credentials.broadcaster_user_id, 
 			"first": 100, 
 			"after" : after 
 		})
@@ -42,9 +42,8 @@ func update_mods(after:String = ""):
 			
 			# More than 100 mods??
 			if result.data.pagination.has("cursor"):
-				await update_mods(result.data.pagination.cursor)
+				await _update_mods(result.data.pagination.cursor)
 
 func enrich_user(user: TwingeUser) -> TwingeUser:
 	user.extra["is_mod"] = mods.has(user.id)
-	
 	return user

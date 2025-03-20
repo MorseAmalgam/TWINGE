@@ -212,7 +212,7 @@ func _update_subscribers(after:String=""):
 		self,
 		"subscriptions", 
 		{ 
-			"broadcaster_id": twinge.credentials.user_id, 
+			"broadcaster_id": twinge.credentials.broadcaster_user_id, 
 			"first": 100, 
 			"after" : after 
 		})

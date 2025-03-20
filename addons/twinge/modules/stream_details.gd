@@ -13,6 +13,8 @@ class StreamerInfo:
 	var start_time:String
 	var thumbnail_url:String
 
+
+
 var vips: Array
 
 signal updated
@@ -61,7 +63,7 @@ func update_vips(after:String = ""):
 		self,
 		"channels/vips", 
 		{
-			"broadcaster_id": twinge.credentials.user_id,
+			"broadcaster_id": twinge.credentials.broadcaster_user_id,
 			"first": 100, 
 			"after" : after 
 		})

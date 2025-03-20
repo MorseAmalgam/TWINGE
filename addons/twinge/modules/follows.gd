@@ -50,7 +50,7 @@ func update_followers(after:String = ""):
 		self,
 		"channels/followers",
 		{
-			"broadcaster_id": twinge.credentials.user_id, 
+			"broadcaster_id": twinge.credentials.broadcaster_user_id, 
 			"first": 100, 
 			"after" : after 
 		}
