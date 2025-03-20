@@ -7,6 +7,7 @@ var id: String
 var login: String
 var display_name: String
 var color: Color = Color.WEB_PURPLE
+var is_broadcaster:bool = false
 var cache_expirations: Dictionary
 var extra: Dictionary = {}
 
@@ -24,6 +25,7 @@ static func load_from_file(user_id:String) -> TwingeUser:
 	user.display_name = file_json.get("display_name")
 	user.color = Color.from_string(file_json.get("color"), Color.WEB_PURPLE)
 	user.cache_expirations = file_json.get("cache_expirations", {})
+	user.is_broadcaster = file_json.get("is_broadcaster", false)
 	user.extra = file_json.get("extra", {})
 	return user
 
@@ -49,6 +51,7 @@ func to_json() -> String:
 		"display_name": display_name,
 		"color": color.to_html(),
 		"cache_expirations": cache_expirations,
+		"is_broadcaster": is_broadcaster,
 		"extra": extra
 	}, "  ")
 
