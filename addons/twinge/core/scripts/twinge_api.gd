@@ -9,7 +9,7 @@ func query(requester:Node, endpoint:String, uri={}, body={}, method=HTTPClient.M
 		"Authorization": "Bearer %s" % twinge.credentials.token,
 		"Client-Id": ProjectSettings.get_setting("TWINGE/oauth/client_ID")
 	}
-	if (method == HTTPClient.METHOD_POST && body != {}):
+	if ((method == HTTPClient.METHOD_POST || method == HTTPClient.METHOD_PATCH) && body != {}):
 		header["Content-Type"] = "application/json"
 
 	return await utilities.request(
