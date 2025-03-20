@@ -66,14 +66,14 @@ func _ready():
 	# Stop processing since we have no server response to listen for
 	set_process(false)
 
-
+# TODO RECONFIGURE LOGIN 
 func initialize(prompt_login:bool = false):
 	required_scopes = twinge.scopes
 	
 	if (ProjectSettings.get_setting("TWINGE/oauth/client_ID") == null or
 		ProjectSettings.get_setting("TWINGE/oauth/client_secret") == null):
 			debug_message("The client ID and/or client secret are currently not set.\nYou must follow the instructions at https://dev.twitch.tv/docs/authentication/register-app/ and fill in these fields before you can make an authorization request.")
-			return
+			return false
 		
 	credentials = TwingeCredentials.load_from_file(credential_filename, ProjectSettings.get_setting("TWINGE/encryption/key"))
 	#credentials = TwingeCredentials.load_from_json(credential_filename) #, ProjectSettings.get_setting("TWINGE/encryption/key"))
@@ -127,8 +127,9 @@ func initialize(prompt_login:bool = false):
 		else:
 			if (prompt_login):
 				login()
+	# File does not exist - Not technically a failure, but means they need to authenticate
 	else:
-		debug_message("Unable to load credential file %s - check that the file exists and is valid." % credential_filename, DebugType.ERROR)
+		debug_message("Unable to load credential file %s - check that the file exists and is valid." % credential_filename, DebugType.WARNING)
 	pass
 
 # VVV UNTESTED VVV
@@ -164,7 +165,7 @@ func _start_tcp_server():
 func query_oauth():
 	set_status(AuthenticationState.AUTHENTICATING)
 	var query = utilities.query_string({
-		"response_type": " ".join(["token", "id_token"]) if not ProjectSettings.get_setting("TWINGE/oAuth/client_secret") else "code",
+		"response_type": " ".join(["token", "id_token"]) if not ProjectSettings.get_setting("TWINGE/oauth/client_secret") else "code",
 		"client_id": ProjectSettings.get_setting("TWINGE/oauth/client_ID"),
 		"scope": " ".join(required_scopes),
 		"redirect_uri": redirect_url,
@@ -294,8 +295,8 @@ func _code_to_token(code: String):
 		{},
 		{
 			"grant_type": "authorization_code",
-			"client_id": ProjectSettings.get_setting("TWINGE/oAuth/client_ID"),
-			"client_secret": ProjectSettings.get_setting("TWINGE/oAuth/client_secret"),
+			"client_id": ProjectSettings.get_setting("TWINGE/oauth/client_ID"),
+			"client_secret": ProjectSettings.get_setting("TWINGE/oauth/client_secret"),
 			"code": code,
 			"redirect_uri": redirect_url
 		},
@@ -306,6 +307,8 @@ func _code_to_token(code: String):
 		return
 	var body = result.data
 	
+	if credentials == null:
+		credentials = TwingeCredentials.new()
 	credentials.token = body.access_token
 	credentials.refresh_token = body.refresh_token
 	
