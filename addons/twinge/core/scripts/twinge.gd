@@ -18,7 +18,6 @@ func change_status(new_status:ConnectionState):
 	_connection_status = new_status
 
 
-
 var credentials:
 	get:
 		return oauth.credentials
@@ -30,7 +29,6 @@ var credentials:
 @onready var oauth:TwingeOAuth = $OAuth
 @onready var eventsub:TwingeEventSub = $EventSub
 @onready var api:TwingeAPI = $API
-
 
 var scopes:Array[String] = []
 var endpoints = {}
@@ -46,8 +44,9 @@ var stream_status:Dictionary = {
 
 const utilities = preload("twinge_utilities.gd")
 
+var broadcaster_user
+
 func _ready():
-	debug_message("Starting up %s" % name)
 	oauth.credential_filename = credential_filename
 	oauth.authentication_change.connect(func(status:TwingeOAuth.AuthenticationState):
 		if status == TwingeOAuth.AuthenticationState.AUTHENTICATED:
@@ -68,6 +67,7 @@ func _ready():
 	debug_message("Populating expected scopes.")
 	populate_scopes()
 	debug_message("Beginning OAuth initialization.")
+	
 	oauth.initialize(true)
 	pass
 
@@ -165,7 +165,7 @@ func get_user(user_id:String, enrich:bool=false)->TwingeUser:
 		user.id = user_id
 		user.login = found_data.login
 		user.display_name = found_data.display_name
-		user.is_broadcaster = (user_id == broadcaster_id)
+		user.is_broadcaster = (user_id == credentials.broadcaster_user_id)
 		
 		# Chat color
 		var color_response = await api.query(
@@ -195,12 +195,15 @@ func get_user(user_id:String, enrich:bool=false)->TwingeUser:
 	user_cache[user_id] = user
 	return user
 
+
 enum DebugType {MESSAGE, WARNING, ERROR}
+@export_enum("None", "Errors", "Warnings & Errors", "Everything") var debug_level = 2
+var service_identifier:String = "Core"
+
 func debug_message(message:String, type:DebugType=DebugType.MESSAGE):
-	match(type):
-		DebugType.MESSAGE:
-			print("[TWINGE-Core] %s" % message)
-		DebugType.WARNING:
-			push_warning("[TWINGE-Core] %s" % message)
-		DebugType.ERROR:
-			push_error("[TWINGE-Core] %s" % message)
+	if (type == DebugType.MESSAGE and debug_level == 3):
+		print("[TWINGE-%s] %s" % [service_identifier, message])
+	elif (type == DebugType.WARNING and debug_level >= 2):
+		push_warning("[TWINGE-%s] %s" % [service_identifier, message])
+	elif (type == DebugType.ERROR and debug_level >= 1):
+		push_error("[TWINGE-%s] %s" % [service_identifier, message])
