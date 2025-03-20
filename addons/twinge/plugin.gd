@@ -5,7 +5,7 @@ extends EditorPlugin
 func _enter_tree():
 	# Register Settings
 	if (!ProjectSettings.has_setting("TWINGE/oauth/client_ID")):
-		ProjectSettings.get_setting("TWINGE/oauth/client_ID", "")
+		ProjectSettings.set_setting("TWINGE/oauth/client_ID", "")
 	if (!ProjectSettings.has_setting("TWINGE/oauth/client_secret")):
 		ProjectSettings.set_setting("TWINGE/oauth/client_secret", "")
 	if (!ProjectSettings.has_setting("TWINGE/encryption/key")):
