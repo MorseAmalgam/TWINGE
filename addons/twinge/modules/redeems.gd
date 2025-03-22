@@ -199,7 +199,7 @@ func _update_redeem(redeem:TwingePointRedeemTemplate):
 	response = response
 	pass
 
-func _delete_redeem(redeem:TwingePointRedeem):
+func _delete_redeem(redeem:TwingePointRedeemTemplate):
 	var response = await twinge.api.query(
 		self,
 		"channel_points/custom_rewards",
