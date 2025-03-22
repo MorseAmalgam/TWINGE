@@ -2,12 +2,20 @@ extends TwingeModule
 class_name TwingeChatModule
 ## Implements chat-related functionalities.
 
+## How long (in seconds) before a message is considered to be the first for a session.
+## Set to 0 to always treat the first message this run is the first session message.
+@export var session_threshold:int = 86400
+
 @export_category("Twitch Capabilities")
 ## Allows the fetching of a list of users currently in chat.
 @export_enum("None", "Read") var allow_chatters = 0
+## Read allows TWINGE to get chat message events. Manage allows TWINGE to send chat messages.
 @export_enum("None", "Read", "Read & Manage") var allow_chat = 0
+## Read allows TWINGE to get whisper events. Manage allows TWINGE to send whispers.
 @export_enum("None", "Read", "Read & Manage") var allow_whisper = 0
+## Read allows Twinge to get shout out events (IE when someone shouts the streamer out). Manage allows TWINGE to make shoutouts.
 @export_enum("None", "Read", "Read & Manage") var allow_shoutout = 0
+## Manage allows TWINGE to make chat announcements.
 @export_enum("None", "Read & Manage") var allow_announcements = 0
 
 var first_chat_tracker:Array
@@ -144,13 +152,21 @@ func _handle_channel_chat_message(details):
 	debug_message("Got user info")
 	# First session chat for this user
 	if (!first_chat_tracker.has(details.chatter_user_id)):
+		var current_time = Time.get_unix_time_from_system()
 		#TODO: Check to see if they're a first time chatter
+		if user.first_chat_timestamp == -1:
+			user.first_chat_timestamp = current_time
+			chat_first_time_message.emit({"user":user})
 		
-		chat_first_session_message.emit({"user":user})
+		if (session_threshold == 0 or current_time - user.session_chat_timestamp < session_threshold):
+			user.session_chat_timestamp = current_time
+			chat_first_session_message.emit({"user":user})
+		
+		user.save_to_file()
 		first_chat_tracker.append(details.chatter_user_id)
 		pass
 	
-	
+	# Check if message calls any triggers
 	for trigger in get_children():
 		if not (trigger is TwingeTriggerTemplate):
 			debug_message(trigger.name + " is not a trigger template")

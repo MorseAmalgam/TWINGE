@@ -9,8 +9,9 @@ var display_name: String
 var color: Color = Color.WEB_PURPLE
 var is_broadcaster:bool = false
 var cache_expirations: Dictionary
+var first_chat_timestamp:int = -1
+var session_chat_timestamp:int = -1
 var extra: Dictionary = {}
-
 
 static func load_from_file(user_id:String) -> TwingeUser:
 	var path = "user://profiles/%s.profile" % user_id
@@ -26,6 +27,8 @@ static func load_from_file(user_id:String) -> TwingeUser:
 	user.color = Color.from_string(file_json.get("color"), Color.WEB_PURPLE)
 	user.cache_expirations = file_json.get("cache_expirations", {})
 	user.is_broadcaster = file_json.get("is_broadcaster", false)
+	user.first_chat_timestamp = file_json.get("is_broadcaster", -1)
+	user.session_chat_timestamp = file_json.get("is_broadcaster", -1)
 	user.extra = file_json.get("extra", {})
 	return user
 
@@ -41,6 +44,8 @@ static func from_json(json: String) -> TwingeUser:
 	user.display_name = data.get("display_name")
 	user.color = Color.from_string(data.get("color"), Color.WEB_PURPLE)
 	user.cache_expirations = data.get("cache_expirations")
+	user.first_chat_timestamp = data.get("first_chat", -1)
+	user.session_chat_timestamp = data.get("session_chat", -1)
 	user.extra = data.get("extra", {})
 	return user
 
@@ -52,6 +57,8 @@ func to_json() -> String:
 		"color": color.to_html(),
 		"cache_expirations": cache_expirations,
 		"is_broadcaster": is_broadcaster,
+		"first_chat": first_chat_timestamp,
+		"session_chat": session_chat_timestamp,
 		"extra": extra
 	}, "  ")
 
