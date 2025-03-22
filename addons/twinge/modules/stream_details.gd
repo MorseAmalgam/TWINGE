@@ -26,6 +26,24 @@ func get_scopes() -> Array[String]:
 	]
 
 
+func get_event_subscriptions() -> Array:
+	twinge.eventsub.event_received.connect(_handle_event)
+	var events:Array
+	events.append({ 
+		"event": "stream.online",
+		"condition": {
+			"user_id": "user_id"
+		}
+	})
+	events.append({ 
+		"event": "stream.offline",
+		"condition": {
+			"user_id": "user_id"
+		}
+	})
+	return events
+
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	super()
@@ -132,5 +150,4 @@ func update_following_live(index:int = 0):
 
 func enrich_user(user: TwingeUser) -> TwingeUser:
 	user.extra["is_vip"] = vips.has(user.id)
-	
 	return user
