@@ -2,6 +2,10 @@ extends TwingeModule
 class_name TwingeRaidModule
 ## Implements features related to raids.
 
+signal start_raid(details)
+signal cancel_raid(details)
+signal channel_raid(details)
+
 func get_scopes() -> Array[String]:
 	return [
 		# Used to start or cancel a raid
@@ -15,6 +19,12 @@ func get_event_subscriptions() -> Array:
 			"event": "channel.raid",
 			"condition": {
 				"to_broadcaster_user_id":"broadcaster_user_id"
+			}
+		},
+		{ 
+			"event": "channel.raid",
+			"condition": {
+				"from_broadcaster_user_id":"broadcaster_user_id"
 			}
 		},
 	]

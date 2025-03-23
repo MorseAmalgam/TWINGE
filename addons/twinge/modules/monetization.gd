@@ -12,6 +12,17 @@ class_name TwingeMonetizationModule
 var subscribers: Dictionary
 var latest_subscriber: TwingeUser
 
+signal channel_ad_break_begin(details)
+signal channel_ad_break_end(details)
+signal channel_cheer(details)
+signal channel_subscribe(details)
+signal channel_subscription_end(details)
+signal channel_subscription_gift(details)
+signal channel_subscription_message(details)
+signal channel_hype_train_begin(details)
+signal channel_hype_train_progress(details)
+signal channel_hype_train_end(details)
+
 func get_scopes() -> Array[String]:
 	var scopes:Array[String] = [
 		"user:bot", "channel:bot"
@@ -122,6 +133,11 @@ func _on_twinge_connected():
 
 
 func _handle_channel_ad_break_begin(details):
+	await get_tree().create_timer(details.duration_seconds).timeout
+	_handle_channel_ad_break_end({})
+	pass
+
+func _handle_channel_ad_break_end(details):
 	pass
 
 func _handle_channel_cheer(details):
