@@ -100,6 +100,12 @@ func connect_to_hook(event_name, callback)->bool:
 	hooks[event_name].connect(callback)
 	return true
 
+func disconnect_from_hook(event_name, callback)->bool:
+	if (!hooks.has(event_name)):
+		return false
+		
+	hooks[event_name].disconnect(callback)
+	return true
 
 func populate_scopes():
 	scopes = []
