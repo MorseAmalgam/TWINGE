@@ -69,22 +69,35 @@ func _on_twinge_connected():
 	# Only attempt to create redeems if we have permission
 	if (allow_redeems < 2):
 		return
-
+	
+	#	Redeem cleanup - Keep track of what redeems Twitch passed back and remove 
+	# entries in the list as they are found. Anything still in the list when it's 
+	# finished should logically be redeems that were changed or removed from the 
+	# structure and need to be removed from Twitch's side to reduce bloat.
+	var unmatched_redeems = redeems.duplicate()
+	
 	for redeem in get_children():
+		# Protection in case something not a redeem is added to the node for some reason
 		if not (redeem is TwingePointRedeemTemplate):
 			continue
 		redeem = redeem as TwingePointRedeemTemplate
-		# Redeem exists, just pass the ID back
-		if redeems.has(redeem.title):
+		# Redeem exists, just pass the ID back and remove it from the possible orphan list
+		if unmatched_redeems.has(redeem.title):
 			debug_message("Redeem %s is already registered, capturing ID and updating on Twitch." % redeem.title)
-			redeem.twitch_redeem_id = redeems[redeem.title]
+			redeem.twitch_redeem_id = unmatched_redeems[redeem.title]
 			await _update_redeem(redeem)
+			unmatched_redeems.erase(redeem.title)
 			continue
 		else:
 			# New redeem, register with Twitch
 			debug_message("Creating redeem for %s" % redeem.title)
 			var response = await _create_redeem(redeem)
 			redeem.twitch_redeem_id = response.id
+	
+	for orphaned_redeem in unmatched_redeems:
+		debug_message("Found an orphaned redeem named '%s' - this has been automatically deleted from Twitch." % orphaned_redeem)
+		await _delete_redeem(unmatched_redeems[orphaned_redeem])
+	
 	pass
 
 func _get_custom_rewards():
@@ -199,13 +212,13 @@ func _update_redeem(redeem:TwingePointRedeemTemplate):
 	response = response
 	pass
 
-func _delete_redeem(redeem:TwingePointRedeemTemplate):
+func _delete_redeem(redeem_id:String):
 	var response = await twinge.api.query(
 		self,
 		"channel_points/custom_rewards",
 		{
 			"broadcaster_id" : twinge.credentials.broadcaster_user_id,
-			"id":redeem.id
+			"id":redeem_id
 		},
 		{},
 		HTTPClient.METHOD_DELETE
