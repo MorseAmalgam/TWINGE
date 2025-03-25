@@ -4,7 +4,7 @@ class_name TwingeRaidModule
 
 signal start_raid(details)
 signal cancel_raid(details)
-signal channel_raid(details)
+signal channel_raided(details)
 
 func get_scopes() -> Array[String]:
 	return [
@@ -14,6 +14,7 @@ func get_scopes() -> Array[String]:
 
 
 func get_event_subscriptions() -> Array:
+	twinge.eventsub.event_received.connect(_handle_event)
 	return [
 		{ 
 			"event": "channel.raid",
@@ -34,6 +35,10 @@ func _ready():
 	service_identifier = "Module-Raids"
 	twinge.register_endpoint("start_raid", self, "_start_raid")
 	twinge.register_endpoint("cancel_raid", self, "_cancel_raid")
+	
+	twinge.register_hook("start_raid", start_raid)
+	twinge.register_hook("cancel_raid", cancel_raid)
+	twinge.register_hook("channel_raided", channel_raided)
 
 
 func _handle_channel_raid(details):
