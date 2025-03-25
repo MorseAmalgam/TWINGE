@@ -9,6 +9,7 @@
 [node name="TWINGE" type="Node"]
 script = ExtResource("1_58clm")
 credential_filename = "twinge_main"
+debug_level = 3
 
 [node name="OAuth" type="Node" parent="."]
 script = ExtResource("2_ytggn")
