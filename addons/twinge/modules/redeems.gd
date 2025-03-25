@@ -7,16 +7,13 @@ class_name TwingeRedeemsModule
 var redeems = {}
 
 func get_scopes() -> Array[String]:
-	var scopes:Array[String] = [
-		"user:bot", "channel:bot"
-	]
+	var scopes:Array[String] = []
 	if (allow_redeems == 1):
 		# Used to read channel point information
 		scopes.append("channel:read:redemptions")
 	elif (allow_redeems == 2):
 		# Used to manage channel point redeems
 		scopes.append("channel:manage:redemptions")
-
 	return scopes
 
 func get_event_subscriptions() -> Array:
@@ -26,15 +23,21 @@ func get_event_subscriptions() -> Array:
 		events.append_array([
 		{ 
 			"event": "channel.channel_points_automatic_reward_redemption.add",
-			"condition": {}
+			"condition": {
+				"broadcaster_user_id":"broadcaster_user_id"
+			}
 		},
 		{ 
 			"event": "channel.channel_points_custom_reward.add",
-			"condition": {}
+			"condition": {
+				"broadcaster_user_id":"broadcaster_user_id"
+			}
 		},
 		{ 
 			"event": "channel.channel_points_custom_reward.update",
-			"condition": {}
+			"condition": {
+				"broadcaster_user_id":"broadcaster_user_id"
+			}
 		},
 		{ 
 			"event": "channel.channel_points_custom_reward.remove",
@@ -42,11 +45,15 @@ func get_event_subscriptions() -> Array:
 		},
 		{ 
 			"event": "channel.channel_points_custom_reward_redemption.add",
-			"condition": {}
+			"condition": {
+				"broadcaster_user_id":"broadcaster_user_id"
+			}
 		},
 		{ 
 			"event": "channel.channel_points_custom_reward_redemption.update",
-			"condition": {}
+			"condition": {
+				"broadcaster_user_id":"broadcaster_user_id"
+			}
 		},
 	])
 	
