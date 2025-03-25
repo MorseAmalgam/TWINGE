@@ -19,7 +19,7 @@ func _ready() -> void:
 func matches_alias(message:String)->int:
 	if !case_sensitive:
 		message = message.to_lower()
-	var words = message.split(" ")
+	var words:Array = message.split(" ")
 	if (where_to_match == 0 and aliases_array.has(words[0])):
 		return 1
 	for alias in aliases_array:

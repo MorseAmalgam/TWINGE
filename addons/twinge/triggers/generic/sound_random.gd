@@ -4,6 +4,7 @@ extends ChatTrigger
 var player:AudioStreamPlayer
 
 func _ready() -> void:
+	super()
 	player = AudioStreamPlayer.new()
 	player.max_polyphony = 10
 	add_child(player)
