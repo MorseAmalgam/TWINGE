@@ -1,4 +1,4 @@
-@icon("res://addons/twinge/core/icons/twinge-redeem.png")
+@icon("res://addons/twinge/core/icons/twinge-reward.png")
 extends Node
 class_name TwingePointRedeemTemplate
 
