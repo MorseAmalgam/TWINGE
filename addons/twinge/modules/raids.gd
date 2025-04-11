@@ -35,13 +35,18 @@ func _ready():
 	service_identifier = "Module-Raids"
 	twinge.register_endpoint("start_raid", self, "_start_raid")
 	twinge.register_endpoint("cancel_raid", self, "_cancel_raid")
-	
+
 	twinge.register_hook("start_raid", start_raid)
-	twinge.register_hook("cancel_raid", cancel_raid)
 	twinge.register_hook("channel_raided", channel_raided)
 
 
 func _handle_channel_raid(details):
+	if (details.from_broadcaster_id == twinge.credentials.broadcaster_user_id):
+		start_raid.emit(details)
+		pass
+	elif (details.to_broadcaster_id == twinge.credentials.broadcaster_user_id):
+		channel_raided.emit(details)
+		pass
 	pass
 
 func _start_raid():

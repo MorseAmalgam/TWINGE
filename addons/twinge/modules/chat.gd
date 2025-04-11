@@ -114,10 +114,9 @@ func _ready():
 	service_identifier = "ChatModule"
 	
 	if 0 < allow_chat:
-		twinge.register_hook("channel_chat_message", chat_message)
-		signals["channel_chat_message"] = chat_message
-		twinge.register_hook("chat_first_time_message", chat_first_time_message)
-		twinge.register_hook("chat_first_session_message", chat_first_session_message)
+		create_hook("channel_chat_message", chat_message)
+		create_hook("chat_first_time_message", chat_first_time_message)
+		create_hook("chat_first_session_message", chat_first_session_message)
 	
 	if (allow_chatters == 1):
 		twinge.register_endpoint("get_chatters", self, "_get_chatters")

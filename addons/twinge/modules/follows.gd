@@ -17,8 +17,7 @@ func _ready():
 	super()
 	service_identifier = "Module-Follows"
 	# Register hooks
-	twinge.register_hook("channel_follow", new_follower)
-	signals["channel_follow"] = new_follower
+	create_hook("channel_follow", new_follower)
 	
 	twinge.register_endpoint("get_followers", self, "get_followers")
 	twinge.register_endpoint("get_latest_follower", self, "get_latest_follower")

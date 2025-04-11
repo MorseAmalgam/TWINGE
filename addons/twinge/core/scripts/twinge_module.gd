@@ -19,6 +19,10 @@ func get_scopes() -> Array[String]:
 func get_event_subscriptions() -> Array:
 	return []
 
+func create_hook(hook_name:String, callback:Signal):
+	twinge.register_hook(hook_name, callback)
+	signals[hook_name] = callback
+	pass
 
 func _handle_event(event:String, details:Dictionary):
 	var formatted_event_name = event.replace(".", "_")

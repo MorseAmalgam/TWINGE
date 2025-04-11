@@ -6,6 +6,13 @@ class_name TwingeRedeemsModule
 
 var redeems = {}
 
+signal channel_channel_points_automatic_reward_redemption_add
+signal channel_channel_points_custom_reward_add
+signal channel_channel_points_custom_reward_update
+signal channel_channel_points_custom_reward_remove
+signal channel_channel_points_custom_reward_redemption_add
+signal channel_channel_points_custom_reward_redemption_update
+
 func get_scopes() -> Array[String]:
 	var scopes:Array[String] = []
 	if (allow_redeems == 1):
@@ -63,6 +70,13 @@ func _ready():
 	super()
 	service_identifier = "Module-Redeems"
 	if (0 < allow_redeems):
+		create_hook("channel_channel_points_automatic_reward_redemption_add", channel_channel_points_automatic_reward_redemption_add)
+		create_hook("channel_channel_points_custom_reward_add", channel_channel_points_custom_reward_add)
+		create_hook("channel_channel_points_custom_reward_update", channel_channel_points_custom_reward_update)
+		create_hook("channel_channel_points_custom_reward_remove", channel_channel_points_custom_reward_remove)
+		create_hook("channel_channel_points_custom_reward_redemption_add", channel_channel_points_custom_reward_redemption_add)
+		create_hook("channel_channel_points_custom_reward_redemption_update", channel_channel_points_custom_reward_redemption_update)
+	if (allow_redeems == 2):
 		twinge.register_endpoint("get_redeem_list", self, "_get_custom_rewards")
 		twinge.register_endpoint("create_redeem", self, "_create_redeem")
 		twinge.register_endpoint("update_redeem", self, "_update_redeem")

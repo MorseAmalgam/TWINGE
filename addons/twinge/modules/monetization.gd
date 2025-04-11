@@ -114,14 +114,29 @@ func get_event_subscriptions() -> Array:
 func _ready():
 	super()
 	service_identifier = "Module-Monetization"
+	if (0 < allow_ads ):
+		create_hook("channel_ad_break_begin", channel_ad_break_begin)
+		create_hook("channel_ad_break_end", channel_ad_break_end)
 	if (allow_ads == 2):
 		twinge.register_endpoint("start_ad_break", self, "_run_ads")
 		twinge.register_endpoint("get_ad_schedule", self, "_get_ad_schedule")
 	if (allow_bits):
+		create_hook("channel_cheer", channel_cheer)
 		twinge.register_endpoint("get_bits_leaderboard", self, "_get_bits_leaderboard")
 	if (allow_subscriptions):
+		# First-time subscriptions and gift subs
+		create_hook("channel_subscribe", channel_subscribe)
+		# Subscription Ends
+		create_hook("channel_subscription_end", channel_subscription_end)
+		# Someone has gifted subs
+		create_hook("channel_subscription_gift", channel_subscription_gift)
+		# Resubscription
+		create_hook("channel_subscription_message", channel_subscription_message)
 		twinge.register_endpoint("get_subscribers", self, "_get_subscribers")
 	if (allow_hype_trains):
+		create_hook("channel_hype_train_begin", channel_hype_train_begin)
+		create_hook("channel_hype_train_progress", channel_hype_train_progress)
+		create_hook("channel_hype_train_end", channel_hype_train_end)
 		twinge.register_endpoint("get_hype_train_events", self, "_get_hype_train_events")
 
 

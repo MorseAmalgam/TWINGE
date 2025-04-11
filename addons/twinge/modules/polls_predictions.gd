@@ -10,6 +10,16 @@ class_name TwingePollPredictionModule
 ## Read & Manage allows the module to also create and manage predictions.
 @export_enum("None", "Read", "Read & Manage") var allow_predictions = 0
 
+
+signal channel_poll_begin
+signal channel_poll_progress
+signal channel_poll_end
+signal channel_prediction_begin
+signal channel_prediction_progress
+signal channel_prediction_lock
+signal channel_prediction_end
+
+
 func get_scopes() -> Array[String]:
 	var scopes:Array[String] = [
 		"user:bot", "channel:bot"
