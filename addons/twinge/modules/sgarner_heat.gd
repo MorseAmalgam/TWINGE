@@ -5,10 +5,12 @@ class_name TwingeHeatModule
 # This must also be enabled on your channel via https://dashboard.twitch.tv/extensions/cr20njfkgll4okyrhag7xxph270sqk-2.1.1
 # See https://github.com/scottgarner/Heat/ for documentation, though this module handles the connection aspects.
 
+## If enabled, this module will treat clicks inside the Godot window as Heat events for debug purposes.
+@export var capture_input:bool
 var socket = WebSocketPeer.new()
 
 
-signal view_click_registered(details)
+signal view_click_registered(details:Dictionary)
 
 
 func _ready():
@@ -21,6 +23,22 @@ func _on_twinge_connected():
 	twinge.register_hook("heat_event", view_click_registered)
 	set_process(true)
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed() and event.button_index == MOUSE_BUTTON_LEFT and capture_input:
+		var profile = {}
+		view_click_registered.emit(
+			{
+				"user": {
+					"id": "00000001",
+					"display_name": "TEST_CLICK",
+					"color": Color.MAGENTA,
+					"profile_image": null
+				},
+				"position": event.position
+			}
+		)
+	pass
+
 func _process(_delta):
 	socket.poll()
 	var state = socket.get_ready_state()
@@ -29,7 +47,6 @@ func _process(_delta):
 			var response = socket.get_packet().get_string_from_ascii()
 			var json = JSON.parse_string(response)
 			if json.type == "click":
-				debug_message("Click Event")
 				var profile = {}
 				profile.id = json.id
 				# Anonymous - No idea how this works
