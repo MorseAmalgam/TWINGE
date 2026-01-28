@@ -13,6 +13,19 @@ func get_scopes() -> Array[String]:
 		"moderator:read:followers", 
 	]
 
+
+func get_event_subscriptions() -> Array:
+	twinge.eventsub.event_received.connect(_handle_event)
+	var events:Array
+	events.append({ 
+		"event": "channel.follow",
+		"version":2,
+		"condition": {
+			"moderator_user_id":"user_id"
+		}
+	})
+	return events
+
 func _ready():
 	super()
 	service_identifier = "Module-Follows"
@@ -31,11 +44,14 @@ func _on_twinge_connected():
 func update_metrics_info():
 	# Reset the list
 	followers = []
-	await update_followers()
+	await _update_followers()
 
 
-func handle_new_follower(details):
-	latest_follower = await twinge.get_user(details.user_id)
+func _handle_channel_follow(details):
+	var user = await twinge.get_user(details.user_id)
+	latest_follower = user
+	details.user = user
+	new_follower.emit(details)
 	pass
 
 func get_followers()->Array:
@@ -44,7 +60,7 @@ func get_followers()->Array:
 func get_latest_follower():
 	return latest_follower
 
-func update_followers(after:String = ""):
+func _update_followers(after:String = ""):
 	var result = await twinge.api.query(
 		self,
 		"channels/followers",
@@ -54,22 +70,21 @@ func update_followers(after:String = ""):
 			"after" : after 
 		}
 	)
-	if result != null:
-		if len(result.data) > 0:
-			if result.data.total == 0:
-				return
-			# Set latest follower
-			if (latest_follower == null):
-				var user =  result.data.data.front()
-				latest_follower = await twinge.get_user(user.user_id)
-			
-			for follower in result.data.data:
-				if (!followers.has(follower.user_id)):
-					followers.append(follower.user_id)
-			
-			# More than 100 Followers
-			if result.data.pagination.has("cursor"):
-				await update_followers(result.data.pagination.cursor)
+	if result != null and result.code == 200:
+		if result.data.total == 0:
+			return
+		# Set latest follower
+		if (latest_follower == null):
+			var user =  result.data.data.front()
+			latest_follower = await twinge.get_user(user.user_id)
+		
+		for follower in result.data.data:
+			if (!followers.has(follower.user_id)):
+				followers.append(follower.user_id)
+		
+		# More than 100 Followers
+		if result.data.pagination.has("cursor"):
+			await _update_followers(result.data.pagination.cursor)
 
 
 func enrich_user(user: TwingeUser) -> TwingeUser:

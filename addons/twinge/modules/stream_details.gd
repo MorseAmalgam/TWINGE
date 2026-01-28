@@ -85,14 +85,13 @@ func update_vips(after:String = ""):
 			"first": 100, 
 			"after" : after 
 		})
-	if result != null:
-		if len(result.data.data) > 0:
-			for vip in result.data.data:
-				if (!vips.has(vip.user_id)):
-					vips.append(vip.user_id)
-			
-			if result.data.pagination.has("cursor"):
-				await update_vips(result.data.pagination.cursor)
+	if result != null and result.code == 200:
+		for vip in result.data.data:
+			if (!vips.has(vip.user_id)):
+				vips.append(vip.user_id)
+		
+		if result.data.pagination.has("cursor"):
+			await update_vips(result.data.pagination.cursor)
 	pass
 
 
@@ -105,15 +104,14 @@ func update_following(after:String=""):
 			"first": 100, 
 			"after" : after 
 		})
-	if result != null:
-		if len(result.data.data) > 0:
-			for user in result.data.data:
-				if (!following.has(user.broadcaster_id)):
-					following.append(user.broadcaster_id)
-			
-			# Following more than 100 users
-			if result.data.pagination.has("cursor"):
-				await update_following(result.data.pagination.cursor)
+	if result != null and result.code == 200:
+		for user in result.data.data:
+			if (!following.has(user.broadcaster_id)):
+				following.append(user.broadcaster_id)
+		
+		# Following more than 100 users
+		if result.data.pagination.has("cursor"):
+			await update_following(result.data.pagination.cursor)
 	pass
 
 func get_following_live():
@@ -129,19 +127,18 @@ func update_following_live(index:int = 0):
 		self,
 		"streams?first=%s&type=live&user_id=%s" % [count_per_request, user_ids]
 		)
-	if result != null:
-		if len(result.data.data) > 0:
-			for user in result.data.data:
-				if (!following_live.has(user.user_id)):
-					following_live_ids.append(user.user_id)
-					
-					var stream_info = StreamerInfo.new()
-					stream_info.username = user.user_name
-					stream_info.game_name = user.game_name
-					stream_info.start_time = user.started_at
-					stream_info.thumbnail_url = user.thumbnail_url
-					following_live[user.user_id] = stream_info
-			
+	if result != null and result.code == 200:
+		for user in result.data.data:
+			if (!following_live.has(user.user_id)):
+				following_live_ids.append(user.user_id)
+				
+				var stream_info = StreamerInfo.new()
+				stream_info.username = user.user_name
+				stream_info.game_name = user.game_name
+				stream_info.start_time = user.started_at
+				stream_info.thumbnail_url = user.thumbnail_url
+				following_live[user.user_id] = stream_info
+		
 		# Not reliant on the number of responses - If we get a response, continue to the next chunk of our list
 		if index + count_per_request < following.size():
 			await update_following_live(index + count_per_request)

@@ -13,6 +13,7 @@ debug_level = 3
 
 [node name="OAuth" type="Node" parent="."]
 script = ExtResource("2_ytggn")
+debug_level = 3
 
 [node name="EventSub" type="Node" parent="."]
 script = ExtResource("4_ccmm6")

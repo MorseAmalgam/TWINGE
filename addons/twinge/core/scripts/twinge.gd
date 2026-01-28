@@ -33,6 +33,7 @@ var credentials:
 var scopes:Array[String] = []
 var endpoints = {}
 var hooks = {}
+var pending_hooks = {}
 
 var user_cache:Dictionary = {}
 var stream_status:Dictionary = {
@@ -54,14 +55,13 @@ func _ready():
 			eventsub.connect_to_eventsub()
 			# Connected, get stream status
 			var status_poller = Timer.new()
-			status_poller.timeout.connect(update_stream_status)
+			#status_poller.timeout.connect(update_stream_status)
 			status_poller.name = "StatusPollTimer"
 			add_child(status_poller)
 			status_poller.start(60.0)
 	)
 	eventsub.connection_change.connect(func(status:TwingeEventSub.ConnectionState):
 		if status == TwingeEventSub.ConnectionState.LISTENING:
-			
 			change_status(ConnectionState.CONNECTED)
 	)
 	debug_message("Populating expected scopes.")
@@ -91,14 +91,24 @@ func endpoint(call_name:String, arguments:Array=[]):
 func register_hook(event_name:String, call_signal):
 	if (!hooks.has(event_name)):
 		hooks[event_name] = call_signal
+		
+		# Check if there are things waiting to connect to this hook and connect them if there are
+		if (pending_hooks.has(event_name)):
+			debug_message("Hook %s has %s connections waiting, attempting to connect those now." % [event_name, pending_hooks[event_name].size()])
+			for hook in pending_hooks[event_name]:
+				connect_to_hook(event_name, hook)
+			pending_hooks.erase(event_name)
 	pass
 
-func connect_to_hook(event_name, callback)->bool:
+func connect_to_hook(event_name, callback):
 	if (!hooks.has(event_name)):
-		return false
+		if !pending_hooks.has(event_name):
+			pending_hooks[event_name] = []
+		pending_hooks[event_name].append(callback)
+		debug_message("Attempted to connect to hook '%s' which is not currently registered. Put in queue to connect if/when it is registered." % event_name, TwingeCore.DebugType.WARNING)
 	
-	hooks[event_name].connect(callback)
-	return true
+	else:
+		hooks[event_name].connect(callback)
 
 func disconnect_from_hook(event_name, callback)->bool:
 	if (!hooks.has(event_name)):
@@ -125,7 +135,7 @@ func update_stream_status():
 		}
 	)
 	
-	if result == null or result.data == "":
+	if result == null or result.data == "" or result.code != 200:
 		return
 	
 	if result.data.size() == 1:
@@ -201,15 +211,18 @@ func get_user(user_id:String, enrich:bool=false)->TwingeUser:
 	user_cache[user_id] = user
 	return user
 
+func update_user_cache(user:TwingeUser):
+	user_cache[user.id] = user
 
 enum DebugType {MESSAGE, WARNING, ERROR}
 @export_enum("None", "Errors", "Warnings & Errors", "Everything") var debug_level = 2
 var service_identifier:String = "Core"
 
 func debug_message(message:String, type:DebugType=DebugType.MESSAGE):
+	var time_dict = Time.get_time_dict_from_system()
 	if (type == DebugType.MESSAGE and debug_level == 3):
-		print("[TWINGE-%s] %s" % [service_identifier, message])
+		print("[%s:%s:%s][TWINGE-%s] %s" % [time_dict["hour"], time_dict["minute"], time_dict["second"], service_identifier, message])
 	elif (type == DebugType.WARNING and debug_level >= 2):
-		push_warning("[TWINGE-%s] %s" % [service_identifier, message])
+		push_warning("[%s:%s:%s][TWINGE-%s] %s" % [time_dict["hour"], time_dict["minute"], time_dict["second"], service_identifier, message])
 	elif (type == DebugType.ERROR and debug_level >= 1):
-		push_error("[TWINGE-%s] %s" % [service_identifier, message])
+		push_error("[%s:%s:%s][TWINGE-%s] %s" % [time_dict["hour"], time_dict["minute"], time_dict["second"], service_identifier, message])

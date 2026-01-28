@@ -55,7 +55,7 @@ static func fetch_image(requester:Node, url:String, filepath:String):
 	
 	var extension = url.get_extension()
 	match extension:
-		"png":
+		"png", "jpeg", "jpg":
 			await save_static(filepath, result[3])
 		_:
 			await save_animated(filepath, result[3])
@@ -67,9 +67,16 @@ static func save_static(filepath: String, buffer: PackedByteArray):
 
 	if not DirAccess.dir_exists_absolute(filepath.get_base_dir()):
 		DirAccess.make_dir_recursive_absolute(filepath.get_base_dir())
-
+	
 	if filepath.ends_with("png"):
 		var error = image.load_png_from_buffer(buffer)
+		if error != OK:
+			push_error("[TWINGE-Utils] Unable to load image '%s'." % filepath)
+			return null
+		image.save_png(filepath)
+	elif filepath.ends_with("jpg") or filepath.ends_with("jpeg"):
+		filepath = "%s.png" % filepath.get_basename()
+		var error = image.load_jpg_from_buffer(buffer)
 		if error != OK:
 			push_error("[TWINGE-Utils] Unable to load image '%s'." % filepath)
 			return null
@@ -84,7 +91,7 @@ static func save_static(filepath: String, buffer: PackedByteArray):
 		push_error("[TWINGE-Utils] Unsupported format: %s" % filepath)
 		return
 		
-	print("[TWINGE-Utils]: Static image saved to '%s'." % filepath)
+	print("[TWINGE-Utils] Static image saved to '%s'." % filepath)
 
 
 static func save_animated(path: String, buffer: PackedByteArray = []) -> Texture2D:

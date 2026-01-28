@@ -82,22 +82,21 @@ func update_followers(after:String = ""):
 			"after" : after 
 		}
 	)
-	if result != null:
-		if len(result.data) > 0:
-			if result.data.total == 0:
-				return
-			# Set latest follower
-			if (latest_follower == null):
-				var user =  result.data.data.front()
-				latest_follower = await twinge.get_user(user.user_id)
-			
-			for follower in result.data.data:
-				if (!followers.has(follower.user_id)):
-					followers.append(follower.user_id)
-			
-			# More than 100 Followers
-			if result.data.pagination.has("cursor"):
-				await update_followers(result.data.pagination.cursor)
+	if result != null and result.code == 200:
+		if result.data.total == 0:
+			return
+		# Set latest follower
+		if (latest_follower == null):
+			var user =  result.data.data.front()
+			latest_follower = await twinge.get_user(user.user_id)
+		
+		for follower in result.data.data:
+			if (!followers.has(follower.user_id)):
+				followers.append(follower.user_id)
+		
+		# More than 100 Followers
+		if result.data.pagination.has("cursor"):
+			await update_followers(result.data.pagination.cursor)
 
 
 func get_vips()->Array:
@@ -112,14 +111,13 @@ func update_vips(after:String = ""):
 			"first": 100, 
 			"after" : after 
 		})
-	if result != null:
-		if len(result.data.data) > 0:
-			for vip in result.data.data:
-				if (!vips.has(vip.user_id)):
-					vips.append(vip.user_id)
-			
-			if result.data.pagination.has("cursor"):
-				await update_vips(result.data.pagination.cursor)
+	if result != null and result.code == 200:
+		for vip in result.data.data:
+			if (!vips.has(vip.user_id)):
+				vips.append(vip.user_id)
+		
+		if result.data.pagination.has("cursor"):
+			await update_vips(result.data.pagination.cursor)
 	pass
 
 func get_subscribers()->Dictionary:
@@ -138,7 +136,7 @@ func update_subscribers(after:String = ""):
 			"after" : after 
 		})
 	if result != null:
-		if len(result.data.data) > 0:
+		if result.code < 300 and  len(result.data.data) > 0:
 			# Set latest subscriber
 			if (latest_subscriber == null):
 				var user =  result.data.data.front()
@@ -168,15 +166,14 @@ func update_mods(after:String = ""):
 			"first": 100, 
 			"after" : after 
 		})
-	if result != null:
-		if len(result.data.data) > 0:
-			for mod in result.data.data:
-				if (!mods.has(mod.user_id)):
-					mods.append(mod.user_id)
-			
-			# More than 100 mods??
-			if result.data.pagination.has("cursor"):
-				await update_mods(result.data.pagination.cursor)
+	if result != null and result.code < 300 and len(result.data.data) > 0:
+		for mod in result.data.data:
+			if (!mods.has(mod.user_id)):
+				mods.append(mod.user_id)
+		
+		# More than 100 mods??
+		if result.data.pagination.has("cursor"):
+			await update_mods(result.data.pagination.cursor)
 
 
 func enrich_user(user: TwingeUser) -> TwingeUser:

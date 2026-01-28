@@ -4,9 +4,9 @@ class_name TwingeOAuth
 var required_scopes:Array[String]
 
 # OAuth Login Management
-var peer : StreamPeerTCP
-var server : TCPServer
-
+var peer:StreamPeerTCP
+var server:TCPServer
+var token_refresher:Timer
 
 enum AuthenticationState {
 	OFFLINE,
@@ -63,6 +63,9 @@ var credential_filename:String
 
 func _ready():
 	service_identifier = "OAuth"
+	token_refresher = Timer.new()
+	token_refresher.timeout.connect(refresh_token)
+	add_child(token_refresher)
 	# Stop processing since we have no server response to listen for
 	set_process(false)
 
@@ -115,10 +118,10 @@ func initialize(prompt_login:bool = false):
 					debug_message("Scope check seems clear.")
 					set_status(AuthenticationState.AUTHENTICATED)
 					# Since we know we have a valid token with desired scopes, we can make sure it stays fresh
-					var token_refresher = Timer.new()
-					token_refresher.timeout.connect(refresh_token)
-					add_child(token_refresher)
-					token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
+					
+					# Make sure that our first refresh will happen before it expires
+					var refresh_time = min(float(result.data.expires_in) - 30, 30.0 * 60.0)
+					token_refresher.start(refresh_time)
 				pass
 			else:
 				set_status(AuthenticationState.FAILED)
@@ -201,8 +204,10 @@ func _stop_server():
 
 func refresh_token()->bool:
 	if credentials == null:
+		debug_message("Refresh Token called, but no credentials were set to refresh.", TwingeService.DebugType.ERROR)
 		return false
 	if credentials.refresh_token == "":
+		debug_message("No refresh token in the credentials, cannot refresh authentication.", TwingeService.DebugType.ERROR)
 		return false
 	
 	var result = await utilities.request(
@@ -220,13 +225,15 @@ func refresh_token()->bool:
 		},
 		HTTPClient.METHOD_POST
 	)
-	
+
 	if result.code != 200:
 		return false
 	
 	credentials.token = result.data.access_token
 	credentials.refresh_token = result.data.refresh_token
-	
+	credentials.save_to_file(credential_filename, ProjectSettings.get_setting("TWINGE/encryption/key"))
+	debug_message("Token refreshed, will expire again in %s seconds." % result.data.expires_in)
+	token_refresher.start(30.0 * 60.0) # refresh every 30 minutes
 	return true
 
 

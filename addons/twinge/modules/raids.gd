@@ -41,16 +41,45 @@ func _ready():
 
 
 func _handle_channel_raid(details):
-	if (details.from_broadcaster_id == twinge.credentials.broadcaster_user_id):
+	if (details.from_broadcaster_user_id == twinge.credentials.broadcaster_user_id):
+		details.user_target = await twinge.get_user(details.to_broadcaster_user_id)
 		start_raid.emit(details)
 		pass
-	elif (details.to_broadcaster_id == twinge.credentials.broadcaster_user_id):
+	elif (details.to_broadcaster_user_id == twinge.credentials.broadcaster_user_id):
+		details.user_raid_leader = await twinge.get_user(details.from_broadcaster_user_id)
 		channel_raided.emit(details)
 		pass
 	pass
 
-func _start_raid():
+func _start_raid(raid_target:String):
+	var res = await twinge.api.query(
+		self,
+		"raids",
+		{},
+		{	
+			"from_broadcaster_id" : twinge.credentials.broadcaster_user_id,
+			"to_broadcaster_id" : raid_target
+		},
+		HTTPClient.METHOD_POST
+	)
+
+	if res.code < 300:
+		return res.data
+	debug_message("Twitch returned invalid response: %s" % res.code, DebugType.ERROR)
 	pass
 
 func _cancel_raid():
+	var res = await twinge.api.query(
+		self,
+		"raids",
+		{},
+		{	
+			"broadcaster_id" : twinge.credentials.broadcaster_user_id
+		},
+		HTTPClient.METHOD_DELETE
+	)
+
+	if res.code < 300:
+		return res.data
+	debug_message("Twitch returned invalid response: %s" % res.code, DebugType.ERROR)
 	pass

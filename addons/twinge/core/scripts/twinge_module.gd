@@ -2,6 +2,8 @@
 extends TwingeService
 class_name TwingeModule
 
+var signals:Dictionary = {}
+
 func _ready():
 	service_identifier = "Module"
 	twinge.connection_change.connect(func(state):
@@ -10,7 +12,6 @@ func _ready():
 		pass
 		)
 
-var signals:Dictionary = {}
 
 func get_scopes() -> Array[String]:
 	return []
@@ -29,7 +30,7 @@ func _handle_event(event:String, details:Dictionary):
 	var method_name = "_handle_%s" % formatted_event_name
 	if has_method(method_name):
 		call(method_name, details)
-	if (signals.has(formatted_event_name)):
+	elif (signals.has(formatted_event_name)):
 		signals[formatted_event_name].emit(details)
 	pass
 

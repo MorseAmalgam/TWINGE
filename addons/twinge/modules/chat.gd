@@ -3,7 +3,8 @@ class_name TwingeChatModule
 ## Implements chat-related functionalities.
 
 ## How long (in seconds) before a message is considered to be the first for a session.
-## Set to 0 to always treat the first message this run is the first session message.
+## [br][br]
+## Set to 0 to always treat the first message this run as the first session message.
 @export var session_threshold:int = 86400
 
 @export_category("Twitch Capabilities")
@@ -117,6 +118,8 @@ func _ready():
 		create_hook("channel_chat_message", chat_message)
 		create_hook("chat_first_time_message", chat_first_time_message)
 		create_hook("chat_first_session_message", chat_first_session_message)
+		create_hook("channel_chat_message_delete", chat_message_delete)
+		create_hook("channel_chat_clear_user_messages", chat_clear_user_messages)
 	
 	if (allow_chatters == 1):
 		twinge.register_endpoint("get_chatters", self, "_get_chatters")
@@ -144,26 +147,45 @@ func update_metrics_info():
 func _handle_channel_chat_message(details):
 	var message = {
 			"id":details.message_id,
-			"text":details.message.text.to_lower()
+			"text":details.message.text.to_lower(),
+			"raw_text":details.message.text,
+			"text_no_emotes":"",
+			"fragments":_process_fragments(details.message.fragments)
 		}
 	
+	# Emote-stripped message, text only
+	details.message.text_no_emotes = ""
+	for fragment in message.fragments:
+		if fragment.type == "text":
+			message.text_no_emotes += fragment.text
+			details.message.text_no_emotes += fragment.text
+	details.message.text_no_emotes = details.message.text_no_emotes.strip_edges()
+	
 	var user = await twinge.get_user(details.chatter_user_id, true)
+	details.user = user
 	debug_message("Got user info")
 	# First session chat for this user
 	if (!first_chat_tracker.has(details.chatter_user_id)):
 		var current_time = Time.get_unix_time_from_system()
-		#TODO: Check to see if they're a first time chatter
-		if user.first_chat_timestamp == -1:
+		debug_message("Current timestamp: %s" % current_time)
+		debug_message("User first chat timestamp: %s" % user.first_chat_timestamp)
+		debug_message("User first session timestamp: %s" % user.session_chat_timestamp)
+		
+		if user.first_chat_timestamp < 100:
 			user.first_chat_timestamp = current_time
 			chat_first_time_message.emit({"user":user})
 		
-		if (session_threshold == 0 or current_time - user.session_chat_timestamp < session_threshold):
+		debug_message("%s (%s) has last_session of %s, compared to %s for first_session = %s" % [user.id, user.display_name, user.session_chat_timestamp, current_time - session_threshold, current_time - session_threshold > user.session_chat_timestamp])
+		if (session_threshold == 0 or current_time - session_threshold > user.session_chat_timestamp):
 			user.session_chat_timestamp = current_time
 			chat_first_session_message.emit({"user":user})
 		
 		user.save_to_file()
+		twinge.update_user_cache(user)
 		first_chat_tracker.append(details.chatter_user_id)
 		pass
+	
+	chat_message.emit(details)
 	
 	# Check if message calls any triggers
 	for trigger in get_children():
@@ -185,6 +207,115 @@ func _handle_channel_chat_message(details):
 		trigger.call("run", user, message)
 	pass
 
+func _process_fragments(fragments):
+	var processed_fragments = []
+	for fragment in fragments:
+		var new_fragment = {
+			"type":fragment.type,
+			"text":fragment.text
+		}
+		# This feels weird, but kind of prepares for some future-proofing
+		match fragment.type:
+			"emote":
+				var is_animated = "animated" in fragment.emote.format
+				new_fragment["emote"] = {
+					"provider":"twitch",
+					"id":fragment.emote.id,
+					"format":"gif" if is_animated else "png",
+					"animated": is_animated,
+					"url":"https://static-cdn.jtvnw.net/emoticons/v2/%s/%s/dark/3.0" % [
+						fragment.emote.id,
+						"animated" if is_animated else "static"
+					],
+					"dimensions":Vector2i(32,32)
+				}
+				printt(new_fragment["emote"].url)
+				pass
+			"text",_:
+				pass
+		processed_fragments.append(new_fragment)
+	
+	return processed_fragments
+	pass
+
+#func _to_fragments(fragments):
+	#var out = []
+	#for f in fragments:
+		#match f.type:
+			#"text":
+				#out.append({
+					#"type": "text",
+					#"text": f.text
+				#})
+			#"emote":
+				#out.append({
+					#"type": "emote",
+					#"text": f.text,
+					#"emote": {
+						#"provider": "twitch",
+						#"id": f.emote.id,
+						#"format": "gif" if "animated" in f.emote.format else "png",
+						#"animated": "animated" in f.emote.format,
+						#"url": TmiTwitchService.EMOTE_URL % [f.emote.id, "animated" if "animated" in f.emote.format else "static"],
+						#"dimensions": Vector2i(32, 32)
+					#}
+				#})
+	#
+	#return out
+#
+#func enrich_fragments(fragments: Array) -> Array:
+	#if _dirty:
+		#_emotes.sort_custom(
+			#func (a, b):
+				#return len(a.code) > len(b.code)
+		#)
+		#_dirty = false
+	#
+	#var m = []
+	#for f in fragments:
+		#match f.type:
+			#"text":
+				## inject emotes from other services
+				#var parts = []
+				#for i in f.text.split(" ", true):
+					#parts.append({
+						#"type": "text",
+						#"text": i
+					#})
+					#
+				#for e in _emotes:
+					#for i in range(len(parts)):
+						#var w = parts[i]
+						#if w.type == "text" and w.text == e.code:
+							#parts[i] = {
+								#"type": "emote",
+								#"text": e.code,
+								#"emote": e,
+							#}
+				#
+				#var builder = []
+				#for p in parts:
+					#match p.type:
+						#"text":
+							#builder.append(p.text)
+						#"emote":
+							#await fetch_emote(p.emote)
+							#m.append({
+								#"type": "text",
+								#"text": " ".join(builder)
+							#})
+							#m.append(p)
+							#builder = []
+				#
+				#if !builder.is_empty():
+					#m.append({
+						#"type": "text",
+						#"text": " ".join(builder)
+					#})
+			#"emote":
+				#await fetch_emote(f.emote)
+				#m.append(f)
+	#return m
 
 func _get_chatters():
 	return chatters
@@ -205,7 +336,7 @@ func _update_chatters(after:String = ""):
 				if (!chatters.has(chatter.user_id)):
 					chatters.append(chatter.user_id)
 			
-			# More than 100 mods??
+			# More than 100 chatters
 			if result.data.pagination.has("cursor"):
 				await _update_chatters(result.data.pagination.cursor)
 

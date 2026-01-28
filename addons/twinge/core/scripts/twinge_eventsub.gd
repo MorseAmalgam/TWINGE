@@ -33,6 +33,7 @@ class EventSubListener:
 
 signal event_received
 
+
 func _ready() -> void:
 	service_identifier = "EventSub"
 	pass
@@ -59,7 +60,8 @@ func connect_to_eventsub():
 	_aggregate_subscriptions()
 	_connect_websocket()
 	pass
-	
+
+
 func _connect_websocket():
 	# Don't connect if we're already connected
 	if socket != null:
@@ -88,6 +90,7 @@ func _connect_websocket():
 	)
 	add_child(heartbeat_watchdog)
 
+
 func _disconnect_websocket():
 	if socket:
 		debug_message("Closing stream.")
@@ -97,6 +100,7 @@ func _disconnect_websocket():
 		
 	if _connection_status != ConnectionState.FAILED:
 		change_status(ConnectionState.OFFLINE)
+
 
 func connect_to_event(event, details, callback):
 	pass
@@ -125,7 +129,7 @@ func _process(delta: float) -> void:
 			debug_message("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 			heartbeat_watchdog.stop()
 			set_process(false) # Stop processing.
-			
+
 
 func _set_up_subscriptions():
 	debug_message("Attempting to subscribe to all existing requested events.")
@@ -146,6 +150,7 @@ func _set_up_subscriptions():
 	debug_message("TWINGE is fully connected and listening for events!")
 	
 	change_status(ConnectionState.LISTENING)
+
 
 func _subscribe_to_event(event, version, details)->Array:
 	var conditions = {
@@ -173,6 +178,7 @@ func _subscribe_to_event(event, version, details)->Array:
 	
 	return [result.code < 300 or result.code == 409, result.code]
 
+
 func _handle_packet(packet: PackedByteArray):
 	# parse packet as list of json messages
 	var event = packet.get_string_from_utf8()
@@ -190,7 +196,8 @@ func handle_websocket_message(command: Dictionary):
 				heartbeat_watchdog.start(heartbeat_watchdog.wait_time)
 		"session_welcome":
 			session_id = command.payload.session.id
-			heartbeat_watchdog.start(command.payload.session.keepalive_timeout_seconds + 5.0) # twitch's keep alive is a bit too aggressive
+			# twitch's keep alive is a bit too aggressive
+			heartbeat_watchdog.start(command.payload.session.keepalive_timeout_seconds + 5.0) 
 			
 			if reconnect_socket:
 				socket.close()
@@ -202,11 +209,10 @@ func handle_websocket_message(command: Dictionary):
 				_set_up_subscriptions()
 		"session_reconnect":
 			reconnect_socket = WebSocketPeer.new()
-			reconnect_socket.connect_to_url(command.metadata.payload.session.reconnect_url)
+			reconnect_socket.connect_to_url(command.payload.session.reconnect_url)
 		"notification":
 			if not heartbeat_watchdog.paused:
 				heartbeat_watchdog.start(heartbeat_watchdog.wait_time)
 			
 			#TODO: compare payload subscription event ID to most recent messages to prevent double-event triggers
-			debug_message("Got a notification")
 			event_received.emit(command.metadata.subscription_type, command.payload.event)
