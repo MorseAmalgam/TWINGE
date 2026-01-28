@@ -34,15 +34,14 @@ func _update_mods(after:String = ""):
 			"first": 100, 
 			"after" : after 
 		})
-	if result != null:
-		if len(result.data.data) > 0:
-			for mod in result.data.data:
-				if (!mods.has(mod.user_id)):
-					mods.append(mod.user_id)
-			
-			# More than 100 mods??
-			if result.data.pagination.has("cursor"):
-				await _update_mods(result.data.pagination.cursor)
+	if result != null and result.code == 200:
+		for mod in result.data.data:
+			if (!mods.has(mod.user_id)):
+				mods.append(mod.user_id)
+		
+		# More than 100 mods??
+		if result.data.pagination.has("cursor"):
+			await _update_mods(result.data.pagination.cursor)
 
 func enrich_user(user: TwingeUser) -> TwingeUser:
 	user.extra["is_mod"] = mods.has(user.id)
