@@ -14,9 +14,9 @@ class_name TwingePointRedeemTemplate
 @export_color_no_alpha var background_color:Color
 ## A Boolean value that determines whether the user needs to enter information when redeeming the reward. See the prompt field. The default is false.
 @export var is_user_input_required:bool
-## The maximum number of redemptions allowed per live stream. Applied only if is_max_per_stream_enabled is true. The minimum value is 1.
+## The maximum number of redemptions allowed per live stream. Automatically applies is_max_per_stream_enabled = true if set to greater than 1. Leave at 0 to disable.
 @export var max_per_stream:int
-## The maximum number of redemptions allowed per user per stream. Applied only if is_max_per_user_per_stream_enabled is true. The minimum value is 1.
+## The maximum number of redemptions allowed per user per stream. Automatically applies is_max_per_user_per_stream_enabled = true if set above 1. Leave at 0 to disable.
 @export var max_per_user_per_stream:int
 ## The cooldown period, in seconds. Applied only if the is_global_cooldown_enabled field is true. The minimum value is 1; however, the minimum value is 60 for it to be shown in the Twitch UX.
 @export var global_cooldown_seconds:int
