@@ -1,4 +1,5 @@
 extends TwingePointRedeemTemplate
+class_name TwingePointRedeemMessageRandom
 
 @export var responses:Array[String]
 
