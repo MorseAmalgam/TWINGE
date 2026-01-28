@@ -13,6 +13,7 @@ signal channel_channel_points_custom_reward_remove
 signal channel_channel_points_custom_reward_redemption_add
 signal channel_channel_points_custom_reward_redemption_update
 
+
 func get_scopes() -> Array[String]:
 	var scopes:Array[String] = []
 	if (allow_redeems == 1):
@@ -22,6 +23,7 @@ func get_scopes() -> Array[String]:
 		# Used to manage channel point redeems
 		scopes.append("channel:manage:redemptions")
 	return scopes
+
 
 func get_event_subscriptions() -> Array:
 	twinge.eventsub.event_received.connect(_handle_event)
@@ -66,6 +68,7 @@ func get_event_subscriptions() -> Array:
 	
 	return events
 
+
 func _ready():
 	super()
 	service_identifier = "Module-Redeems"
@@ -83,6 +86,7 @@ func _ready():
 		twinge.register_endpoint("delete_redeem", self, "_delete_redeem")
 		twinge.register_endpoint("get_redeem_redemptions", self, "_get_custom_reward_redemption")
 
+
 func _on_twinge_connected():
 	# Get rewards
 	await _update_custom_reward_list()
@@ -91,7 +95,7 @@ func _on_twinge_connected():
 	if (allow_redeems < 2):
 		return
 	
-	#	Redeem cleanup - Keep track of what redeems Twitch passed back and remove 
+	# Redeem cleanup - Keep track of what redeems Twitch passed back and remove 
 	# entries in the list as they are found. Anything still in the list when it's 
 	# finished should logically be redeems that were changed or removed from the 
 	# structure and need to be removed from Twitch's side to reduce bloat.
@@ -105,7 +109,7 @@ func _on_twinge_connected():
 		# Redeem exists, just pass the ID back and remove it from the possible orphan list
 		if unmatched_redeems.has(redeem.title):
 			debug_message("Redeem %s is already registered, capturing ID and updating on Twitch." % redeem.title)
-			redeem.twitch_redeem_id = unmatched_redeems[redeem.title]
+			redeem.twitch_redeem_id = unmatched_redeems[redeem.title].id
 			await _update_redeem(redeem)
 			unmatched_redeems.erase(redeem.title)
 			continue
@@ -117,12 +121,14 @@ func _on_twinge_connected():
 	
 	for orphaned_redeem in unmatched_redeems:
 		debug_message("Found an orphaned redeem named '%s' - this has been automatically deleted from Twitch." % orphaned_redeem)
-		await _delete_redeem(unmatched_redeems[orphaned_redeem])
+		await _delete_redeem(unmatched_redeems[orphaned_redeem].id)
 	
 	pass
 
+
 func _get_custom_rewards():
 	pass
+
 
 func _update_custom_reward_list(only_manageable:bool = true):
 	var response = await twinge.api.query(
@@ -138,8 +144,9 @@ func _update_custom_reward_list(only_manageable:bool = true):
 		return
 		
 	for reward in response.data.data:
-		redeems[reward.title] = reward.id
+		redeems[reward.title] = reward
 	pass
+
 
 func _get_custom_reward_redemption():
 	pass
@@ -176,7 +183,7 @@ func _create_redeem(redeem:TwingePointRedeemTemplate):
 		redeem_data.prompt = redeem.description
 	
 	if (redeem.auto_complete_redemption):
-		redeem_data.should_redemptions_skip_queue = true
+		redeem_data.should_redemptions_skip_request_queue = true
 	
 	var response = await twinge.api.query(
 		self,
@@ -195,30 +202,49 @@ func _create_redeem(redeem:TwingePointRedeemTemplate):
 		pass
 	pass
 
+
 func _update_redeem(redeem:TwingePointRedeemTemplate):
-	var redeem_data = {
-		"title":redeem.title,
-		"cost":redeem.cost
-	}
-	
-	redeem_data.is_enabled = redeem.is_enabled
-	
-	redeem_data.background_color = "#%s" % redeem.background_color.to_html(false)
-	
-	redeem_data.is_user_input_required = redeem.is_user_input_required
+	var current_redeem = redeems[redeem.title]
+	var redeem_data = {}
 
-	redeem_data.is_max_per_stream_enabled = 0 < redeem.max_per_stream
-	redeem_data.max_per_stream = redeem.max_per_stream
+	if current_redeem.title != redeem.title:
+		redeem_data.title = redeem.title
 	
-	redeem_data.is_max_per_user_per_stream_enabled = 0 < redeem.max_per_user_per_stream
-	redeem_data.max_per_user_per_stream = redeem.max_per_user_per_stream
+	if current_redeem.cost != redeem.cost:
+		redeem_data.cost = redeem.cost
+	
+	if current_redeem.is_enabled != redeem.is_enabled:
+		redeem_data.is_enabled = redeem.is_enabled
+	
+	if current_redeem.background_color != "#%s" % redeem.background_color.to_html(false).to_upper():
+		redeem_data.background_color = "#%s" % redeem.background_color.to_html(false)
+	
+	if current_redeem.is_user_input_required != redeem.is_user_input_required:
+		redeem_data.is_user_input_required = redeem.is_user_input_required
 
-	redeem_data.is_global_cooldown_enabled = 0 < redeem.global_cooldown_seconds
-	redeem_data.global_cooldown_seconds = redeem.global_cooldown_seconds
+	if current_redeem.max_per_stream_setting.max_per_stream != redeem.max_per_stream:
+		redeem_data.is_max_per_stream_enabled = 0 < redeem.max_per_stream
+		redeem_data.max_per_stream = redeem.max_per_stream
 	
-	redeem_data.prompt = redeem.description
+	if current_redeem.max_per_user_per_stream_setting.max_per_user_per_stream != redeem.max_per_user_per_stream:
+		redeem_data.is_max_per_user_per_stream_enabled = 0 < redeem.max_per_user_per_stream
+		redeem_data.max_per_user_per_stream = redeem.max_per_user_per_stream
 	
-	redeem_data.should_redemptions_skip_queue = redeem.auto_complete_redemption
+	if current_redeem.global_cooldown_setting.global_cooldown_seconds != redeem.global_cooldown_seconds:
+		redeem_data.is_global_cooldown_enabled = 0 < redeem.global_cooldown_seconds
+		redeem_data.global_cooldown_seconds = redeem.global_cooldown_seconds
+	
+	if current_redeem.prompt != redeem.description:
+		redeem_data.prompt = redeem.description
+	
+	if current_redeem.should_redemptions_skip_request_queue != redeem.auto_complete_redemption:
+		redeem_data.should_redemptions_skip_request_queue = redeem.auto_complete_redemption
+	
+	# No need to bother updating if there's nothing to update
+	if redeem_data.is_empty():
+		return
+	
+	debug_message("Updating %s with %s" % [redeem.title, redeem_data])
 	
 	var response = await twinge.api.query(
 		self,
@@ -230,8 +256,11 @@ func _update_redeem(redeem:TwingePointRedeemTemplate):
 		redeem_data,
 		HTTPClient.METHOD_PATCH
 	)
-	response = response
+	
+	if response.code == 200:
+		redeems[redeem.title] = response.data.data[0]
 	pass
+
 
 func _delete_redeem(redeem_id:String):
 	var response = await twinge.api.query(
@@ -246,17 +275,20 @@ func _delete_redeem(redeem_id:String):
 	)
 	pass
 
+
 func _handle_channel_channel_points_custom_reward_redemption_add(details):
 	var user = await twinge.get_user(details.user_id, true)
+	channel_channel_points_custom_reward_redemption_add.emit(details)
 	for redeem in get_children():
 		if not (redeem is TwingePointRedeemTemplate):
 			continue
 		redeem = redeem as TwingePointRedeemTemplate
 		if (redeem.twitch_redeem_id != details.reward.id):
 			continue
-
+	
 		_update_redemption_status(details.reward.id, details.id, await redeem.call("run", user, details))
 	pass
+
 
 func _update_redemption_status(redeem_id, redemption_id, fulfilled:bool = true):
 	var response = await twinge.api.query(
