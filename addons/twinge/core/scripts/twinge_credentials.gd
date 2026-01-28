@@ -7,6 +7,7 @@ class_name TwingeCredentials
 @export var broadcaster_user_id: String
 @export var token: String
 @export var refresh_token: String
+@export var expire_timestamp: int
 
 func to_json() -> String:
 	return JSON.stringify({
