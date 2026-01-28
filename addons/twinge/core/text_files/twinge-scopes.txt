@@ -1,11 +1,3 @@
-	# IRC SUPPORT
-	# This is actually everything. Both of these are also available via the API's chat support. Basically only useful if you don't want to do OAuth. 
-	# Required to read messages sent via IRC
-	"chat:read",
-	# Required to send messages via IRC
-	"chat:edit",
-	
-	
 	# API SUPPORT
 	
 	# Chat support
@@ -138,16 +130,6 @@
 	"channel:read:editors"
 	# Manage a channel’s Extension configuration, including activating Extensions. - As with the extension analytics, could be useful if your project has a custom extension but otherwise unclear.
 	"channel:manage:extensions"
-	# View Hype Train information for a channel. - Probably worthwhile to implement. Fairly small amount of events/triggers.
-	"channel:read:hype_train",
-	# View a channel’s polls. - Useful for only getting polls, but the manage scope covers creation which seems too important to make this worthwhile.
-	"channel:read:polls",
-	# View a channel’s Channel Points Predictions. - Useful for only getting predictions, but the manage scope also covers creation which seems vital to the use of this module.
-	"channel:read:predictions", 
-	# View Channel Points custom rewards and their redemptions on a channel. - Useful for only getting predictions, but the manage scope also covers creation which is nearly mandatory for this module.
-	"channel:read:redemptions",
-	# Read the list of VIPs in your channel. - Useful for only reading the VIPs, but the manage scope also allows addition/removal which I've seen used in some redeems.
-	"channel:read:vips",
 	# Manage Clips for a channel. - Should probably be implemented? I don't know how often people use automatic clip tools.
 	"clips:edit",
 	# View a broadcaster’s AutoMod settings. - Maybe useful? It's hard to think of a use case.
@@ -158,8 +140,6 @@
 	"moderator:read:blocked_terms",
 	# View a broadcaster’s Shield Mode status. - Useful for only getting current mode, but manage scope also covers updating the mode.
 	"moderator:read:shield_mode",
-	# View a broadcaster’s shoutouts. - USeful for getting when a shoutout is made, but manage allows the creation of making a shoutout which feels mandatory.
-	"moderator:read:shoutouts",
 	# Read warnings in channels where you have the moderator role. - Useful for if another mod is sending a warning, but you can get that with the manage scope and send warnings.
 	"moderator:read:warnings",
 	# View a user’s broadcasting configuration, including Extension configurations. - More weird extension scopes.
