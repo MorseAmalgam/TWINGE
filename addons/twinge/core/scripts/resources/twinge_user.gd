@@ -6,7 +6,7 @@ const utilities = preload("../twinge_utilities.gd")
 var id: String
 var login: String
 var display_name: String
-var color: Color = Color.WEB_PURPLE
+var color: Color = Color.REBECCA_PURPLE
 var is_broadcaster:bool = false
 var cache_expirations: Dictionary
 var first_chat_timestamp:int = -1
@@ -24,30 +24,17 @@ static func load_from_file(user_id:String) -> TwingeUser:
 	user.id = file_json.get("id")
 	user.login = file_json.get("login")
 	user.display_name = file_json.get("display_name")
-	user.color = Color.from_string(file_json.get("color"), Color.WEB_PURPLE)
+	user.color = Color.from_string(file_json.get("color"), Color.REBECCA_PURPLE)
 	user.cache_expirations = file_json.get("cache_expirations", {})
 	user.is_broadcaster = file_json.get("is_broadcaster", false)
-	user.first_chat_timestamp = file_json.get("is_broadcaster", -1)
-	user.session_chat_timestamp = file_json.get("is_broadcaster", -1)
+	user.first_chat_timestamp = file_json.get("first_chat", -1)
+	user.session_chat_timestamp = file_json.get("session_chat", -1)
 	user.extra = file_json.get("extra", {})
 	return user
 
 func profile_picture()->Texture2D:
 	return utilities.load_image("user://profile_images/%s.png" % id)
 
-static func from_json(json: String) -> TwingeUser:
-	var user = TwingeUser.new()
-	var data = JSON.parse_string(json)
-	
-	user.id = data.get("id")
-	user.login = data.get("login")
-	user.display_name = data.get("display_name")
-	user.color = Color.from_string(data.get("color"), Color.WEB_PURPLE)
-	user.cache_expirations = data.get("cache_expirations")
-	user.first_chat_timestamp = data.get("first_chat", -1)
-	user.session_chat_timestamp = data.get("session_chat", -1)
-	user.extra = data.get("extra", {})
-	return user
 
 func to_json() -> String:
 	return JSON.stringify({
